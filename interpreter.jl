@@ -1,51 +1,28 @@
 module Interpreter
+    include("state.jl")
+    using .State
 
-    @enum State none print def_fn
     const time_ext = ".time"
     const space_ext = ".space"
-    const current_state::Base.RefValue{State} = Ref(none)
-    const print_string::Base.RefValue{String} = Ref("")
-    const pause::Base.RefValue{Bool} = Ref(false)
+    const p_chars = " abcdefghijklmnopqrstuvwxyz!@#\$%^&*()"
 
-    function reset_state()
-        if current_state[] == print
-            println(print_string[])
-        end
-        current_state[] = none
-    end
-
-    function start_print()
-        current_state[] = print
-    end
-
-    function define_function()
-        current_state[] = def_fn
-    end
-
-    function proceed()
-        # Release pause before proceeding to next file
-        pause[] = false
-    end
-
-    p_chars = " abcdefghijklmnopqrstuvwxyz!@#\$%^&*()"
-
-    reserved = Dict(
-        0 => reset_state,
-        1 => start_print,
-        2 => proceed,
-        3 => define_function,
+    const reserved = Dict(
+        0 => State.reset_state,
+        1 => State.start_print,
+        2 => State.proceed,
+        3 => State.define_function,
     )
 
     function run_space_interpreter(file::String)
         lines = readlines(file)
         for line in lines
-            if pause[] || current_state[] == none || length(line) == 0
+            if State.pause[] || State.mode[] == State.none || length(line) == 0
                 if !(length(line) in keys(reserved))
                     continue
                 end
                 reserved[length(line)]()
-            elseif current_state[] == print
-                print_string[] = print_string[] * p_chars[length(line)]
+            elseif State.mode[] == State.print
+                State.print_string[] = State.print_string[] * p_chars[length(line)]
             end
         end
     end
@@ -57,14 +34,14 @@ module Interpreter
 
         while idx + 1 < length(time_str) + 1
             window::Int32 = parse(Int32, time_str[idx:idx+1])
-            if pause[] || current_state[] == none || window == 0
+            if State.pause[] || State.mode[] == State.none || window == 0
                 if !(window in keys(reserved))
                     continue
                 end
 
                 reserved[window]()
-            elseif current_state[] == print
-                print_string[] = print_string[] * p_chars[window]
+            elseif State.mode[] == State.print
+                State.print_string[] = State.print_string[] * p_chars[window]
             end
 
             idx += 2
@@ -87,10 +64,10 @@ module Interpreter
             files::Vector{String} = sort(readdir(path))
             for file in files
                 process_file(path * file)
-                pause[] = true
+                State.pause[] = true
             end
         elseif isfile(path)
-            process_file(file)
+            process_file(path)
         else
             error("Invalid file or dir $path")
         end
@@ -101,4 +78,4 @@ module Interpreter
         main()
     end
 
-end #module
+end
