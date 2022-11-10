@@ -2,7 +2,7 @@
 (require racket/string)
 
 (define input (vector-ref (current-command-line-arguments) 0))
-(define printable " abcdefghijklmnopqrstuvwxyz")
+(define printable " abcdefghijklmnopqrstuvwxyz!@#$%^&*()")
 (define printstr "")
 
 ; Mutable "mode" for switching between interpreter states
@@ -26,9 +26,9 @@
 
 (define count-substring (compose length regexp-match*))
 
-(define (retrieve-char line)
-  (string (string-ref printable
-                      (count-substring " " line))))
+(define (update-printstr line)
+  (let ([char (string-ref printable (count-substring " " line))])
+    (set! printstr (string-append printstr (string char)))))
 
 (define (end-of-exp line)
   (and pause (= (string-length line) 0)))
@@ -43,7 +43,8 @@
           (set! pause #f)
           (cond
             [(equal? (unbox mode) 'begin-print)
-             (set! printstr (string-append printstr (retrieve-char line)))])])
+             (update-printstr line)]
+            [else (error "Unknown mode")])])
       (cond
         [(= (string-length line) 0)
          (set! pause #t)])
