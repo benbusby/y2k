@@ -2,6 +2,7 @@
 (require racket/string)
 
 (define input (vector-ref (current-command-line-arguments) 0))
+(define ext ".sb")
 (define printable " abcdefghijklmnopqrstuvwxyz!@#$%^&*()")
 (define printstr "")
 
@@ -33,13 +34,19 @@
 (define (end-of-exp line)
   (and pause (= (string-length line) 0)))
 
+(define (sb-directory-list path)
+  (filter
+    (lambda (f)
+      (string-suffix? (path->string f) ext))
+    (directory-list path)))
+
 (define (line-iter file)
   (let ((line (read-line file 'any)))
     (unless (eof-object? line)
       (cond
         [(or (equal? (unbox mode) 'none) (end-of-exp line))
          ((hash-ref commands (count-substring " " line)))]
-        [else 
+        [else
           (set! pause #f)
           (cond
             [(equal? (unbox mode) 'begin-print)
@@ -53,7 +60,11 @@
 
 ; Run the interpreter against the specified file or directory
 (cond
-    [(directory-exists? input) (displayln "dir")]
+    [(directory-exists? input)
+     (for-each
+       (lambda (f)
+         (line-iter (open-input-file (build-path input f))))
+       (sb-directory-list input))]
     [(file-exists? input)
       (line-iter (open-input-file input))]
     [else (error "File not found")])

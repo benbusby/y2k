@@ -1,2 +1,3 @@
 # Unix timestamps aren't preserved in git
 *.time
+*.sb
