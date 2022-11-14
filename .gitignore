@@ -1,3 +1,2 @@
 # Unix timestamps aren't preserved in git
-*.time
-*.sb
+*.y2k

@@ -5,7 +5,7 @@
 (define get-ts file-or-directory-modify-seconds)
 
 (define input (vector-ref (current-command-line-arguments) 0))
-(define ext ".sb")
+(define ext ".y2k")
 (define printable " abcdefghijklmnopqrstuvwxyz!@#$%^&*()")
 (define printstr "")
 
@@ -16,15 +16,18 @@
 (define new-file #t)
 
 ; Define commands for modifying interpreter mode
+(define (update-mode new-mode)
+  (set-box! mode new-mode)
+  (set-box! prev-mode new-mode))
+
 (define (reset)
   (cond
     [(> (string-length printstr) 0)
      (displayln (string-trim printstr))
      (set! printstr "")])
-  (set-box! mode 'none))
+  (update-mode 'none))
 (define (begin-print)
-  (set-box! mode 'begin-print)
-  (set-box! prev-mode 'begin-print))
+  (update-mode 'begin-print))
 (define (continue)
   (set-box! mode (unbox prev-mode)))
 
@@ -33,8 +36,8 @@
 ; will see it when parsing.
 (define commands (make-hash))
 (hash-set! commands 00 reset)
-(hash-set! commands 01 begin-print)
-(hash-set! commands 02 continue)
+(hash-set! commands 01 continue)
+(hash-set! commands 02 begin-print)
 
 (define count-substring (compose length regexp-match*))
 
@@ -95,12 +98,21 @@
     [(directory-exists? input)
      (for-each
        (lambda (f)
+         ; Build path to be absolute ("path/to/file.y2k")
          (define path (build-path input f))
+
+         ; Prepend a 0 to ensure initial command is interpreted
+         ; without disturbing the rest of the time string.
+         ; Each file always starts with a single digit command.
          (define time-str (string-append "0" (~v (get-ts path))))
+
+         ; Parse the file and enable the new-file flag to indicate that
+         ; any in-progress parsing (commands split between multiple files)
+         ; should be paused until the next file is read.
          (parse-ts time-str 0)
          (set! new-file #t))
        (sb-directory-list input))
      (reset)]
     [(file-exists? input)
-      (line-iter (open-input-file input))]
+     (line-iter (open-input-file input))]
     [else (error "File not found")])
