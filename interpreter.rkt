@@ -86,6 +86,7 @@
   (let ([new-var (hash-ref variables new-var-id)])
     (cond
       [(equal? (object-name new-var-type) 'numeric)
+       (set-numeric-str! new-var (string-append (numeric-str new-var) (~v val)))
        (cond
          [(= (string-length (numeric-str new-var)) (numeric-digits new-var))
           ; Reset window size back to 2 digits
@@ -99,9 +100,7 @@
           (set!-values
             (new-var-step new-var-id new-var-type)
             (values 0 -1 '()))
-          (reset)]
-         [else
-           (set-numeric-str! new-var (string-append (numeric-str new-var) (~v val)))])
+          (reset)])
        ]))))
 
 (define (update-printstr idx)
@@ -169,10 +168,12 @@
          ; Build path to be absolute ("path/to/file.y2k")
          (define path (build-path input f))
 
-         ; Prepend a 0 to ensure initial command is interpreted
-         ; without disturbing the rest of the time string.
-         ; Each file always starts with a single digit command.
-         (define time-str (string-append "0" (~v (get-ts path))))
+         ; If the current window size is the default (2), prepend a 0 to ensure
+         ; initial command is interpreted without disturbing the rest of the
+         ; time string. Each file always starts with a single digit command.
+         (define time-str (if (= w-size 2)
+                            (string-append "0" (~v (get-ts path)))
+                            (~v (get-ts path))))
 
          ; Parse the file and enable the new-file flag to indicate that
          ; any in-progress parsing (commands split between multiple files)
