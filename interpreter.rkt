@@ -32,7 +32,7 @@
      (displayln (string-trim printstr))
      (set! printstr "")]
     [(> printvar 0)
-     (displayln (numeric-val (hash-ref variables printvar)))
+     (displayln (variable-val (hash-ref variables printvar)))
      (set! printvar -1)])
 
   (set-box! mode 'none))
@@ -54,12 +54,6 @@
 ; Define table for storing variables
 (define variables (make-hash))
 
-; Define table for variable types
-(define variable-types (make-hash))
-(hash-set! variable-types 00 'none)
-(hash-set! variable-types 01 'string)
-(hash-set! variable-types 02 numeric)
-
 ; Set up values for tracking progress while parsing
 ; the timestamp to declare a new variable.
 (define new-var-step 0)
@@ -76,25 +70,23 @@
   (set! new-var-type (hash-ref variable-types val))
   (set! new-var-step (+ new-var-step 1))))
 (hash-set! new-var-steps 02 (lambda (val)
-  (cond
-    [(equal? (object-name new-var-type) 'numeric)
-     (let ([new-var (new-var-type val "" 0)])
-       (hash-set! variables new-var-id new-var)
-       (set! next-w-size 1))])
+  (let ([new-var (variable val "" 0)])
+    (hash-set! variables new-var-id new-var)
+    (set! next-w-size 1))
   (set! new-var-step (+ new-var-step 1))))
 (hash-set! new-var-steps 03 (lambda (val)
   (let ([new-var (hash-ref variables new-var-id)])
     (cond
-      [(equal? (object-name new-var-type) 'numeric)
-       (set-numeric-str! new-var (string-append (numeric-str new-var) (~v val)))
+      [(equal? new-var-type 'numeric)
+       (set-variable-str! new-var (string-append (variable-str new-var) (~v val)))
        (cond
-         [(= (string-length (numeric-str new-var)) (numeric-digits new-var))
+         [(= (string-length (variable-str new-var)) (variable-size new-var))
           ; Reset window size back to 2 digits
           (set! next-w-size 2)
 
-          ; Convert the string value to a numeric value and store within the
+          ; Convert the string value to a variable value and store within the
           ; variable struct
-          (set-numeric-val! new-var (string->number (numeric-str new-var)))
+          (set-variable-val! new-var (string->number (variable-str new-var)))
 
           ; Reset all values related creating new variables
           (set!-values
@@ -142,7 +134,7 @@
            (set! printvar cmd)
            (reset)]
           ; "set-var" mode initiates a chain of processing steps that allow sequential
-          ; 2-digit codes to set up and store a numeric value. Refer to the documentation
+          ; 2-digit codes to set up and store a variable value. Refer to the documentation
           ; for more detail, but the tldr sequence is:
           ;
           ; set-var -> var name -> var type -> var size -> var value
