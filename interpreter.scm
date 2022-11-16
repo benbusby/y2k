@@ -1,6 +1,4 @@
-(import srfi-69)
 (import
-  srfi-69
   (chicken file)
   (chicken file posix)
   (chicken irregex)
@@ -36,7 +34,7 @@
     [(> (string-length printstr) 0)
      (displayln printstr)]
     [(> printvar 0)
-     (displayln (variable-val (hash-table-ref variables printvar)))
+     (displayln (variable-val (cadr (assoc printvar variables))))
      (set! printvar -1)])
 
   (set! mode 'none))
@@ -49,15 +47,13 @@
 ; Define table for mapping program input->commands
 ; Keys intentionally include a leading 0 to visually
 ; match how the interpreter will see it when parsing.
-(define commands (make-hash-table))
-(hash-table-set! commands 00 reset)
-(hash-table-set! commands 01 continue)
-(hash-table-set! commands 02 print-str)
-(hash-table-set! commands 03 print-var)
-(hash-table-set! commands 04 set-var)
+(define commands
+  '((00 ,reset)     (01 ,continue)
+    (02 ,print-str) (03 ,print-var)
+    (04 ,set-var)))
 
 ; Define a table for storing variables
-(define variables (make-hash-table))
+(define variables '())
 
 ; Establish variables for tracking progress while
 ; parsing timestamp values involved with creating a
@@ -65,45 +61,44 @@
 (define new-var-step   0)
 (define new-var-id    -1)
 (define new-var-type '())
-(define new-var-steps (make-hash-table))
-(hash-table-set! new-var-steps 00 (lambda (val)
-  ; Set new variable "name" (a 2-digit value to use
-  ; when referencing the variable in a program)
-  (set! new-var-id val)
-  (set! new-var-step (+ new-var-step 1))))
-(hash-table-set! new-var-steps 01 (lambda (val)
-  ; Set the new variable data type
-  ; TODO -- document types
-  (set! new-var-type (hash-table-ref variable-types val))
-  (set! new-var-step (+ new-var-step 1))))
-(hash-table-set! new-var-steps 02 (lambda (val)
-  ; Use the two digit size provided here to create and
-  ; insert the new variable.
-  (let ([new-var (make-variable val "" 0)])
-    (hash-table-set! variables new-var-id new-var)
-    (set! next-w-size 1))
+(define new-var-steps
+  '((00 ,(lambda (val)
+          ; Set new variable "name" (a 2-digit value to use
+          ; when referencing the variable in a program)
+          (set! new-var-id val)
+          (set! new-var-step (+ new-var-step 1))))
+    (01 ,(lambda (val)
+          ; Set the new variable data type
+          ; TODO -- document types
+          (set! new-var-type (cadadr (assoc val variable-types)))
+          (set! new-var-step (+ new-var-step 1))))
+    (02 ,(lambda (val)
+          ; Use the two digit size provided here to create and
+          ; insert the new variable.
+          (let ([new-var (make-variable val "" 0)])
+            (set! variables (append variables `((,new-var-id ,new-var))))
+            (set! next-w-size 1))
 
-  ; Now that we have the size, we can switch to single digit timestamp parsing
-  ; until we've parsed the full number of digits for the variable.
-  (set! new-var-step (+ new-var-step 1))))
-(hash-table-set! new-var-steps 03 (lambda (val)
-  (let ([new-var (hash-table-ref variables new-var-id)])
-    (cond
-      [(equal? new-var-type 'numeric)
-       (set-variable-str! new-var (string-append (variable-str new-var) (->string val)))
-       (cond
-         [(= (string-length (variable-str new-var)) (variable-size new-var))
-          ; Reset window size back to 2 digits
-          (set! next-w-size 2)
+          ; Now that we have the size, we can switch to single digit timestamp
+          ; parsing until we've parsed the full number of digits for the variable.
+          (set! new-var-step (+ new-var-step 1))))
+    (03 ,(lambda (val)
+          (let ([new-var (cadr (assoc new-var-id variables))])
+            (cond
+              [(equal? new-var-type 'numeric)
+               (set-variable-str! new-var (string-append (variable-str new-var) (->string val)))
+               (cond
+                 [(= (string-length (variable-str new-var)) (variable-size new-var))
+                  ; Reset window size back to 2 digits
+                  (set! next-w-size 2)
 
-          ; Convert the string value to a numeric value
-          (set-variable-val! new-var (string->number (variable-str new-var)))
+                  ; Convert the string value to a numeric value
+                  (set-variable-val! new-var (string->number (variable-str new-var)))
 
-          ; Reset all values pertaining to the creation of new variables
-          (set!-values
-            (new-var-step new-var-id new-var-type)
-            (values 0 -1 '()))
-          (reset)])]))))
+                  ; Reset all values pertaining to the creation of new variables
+                  (set!-values (new-var-step new-var-id new-var-type) (values 0 -1 '()))
+                  (reset)])]
+              [else (error "Unsupported variable type")]))))))
 
 (define (update-printstr index)
   (let ([char (string-ref printable index)])
@@ -124,7 +119,7 @@
         ; Refer to the main commands table if a mode has not yet been set,
         ; an escape sequence was entered, or we're beginning to parse a new file.
         [(or (equal? mode 'none) (end-of-exp cmd) new-file)
-         ((hash-table-ref commands cmd))
+         ((eval (cadadr (assoc cmd commands))))
          (set! new-file #f)]
         [else
           (set! pause #f)
@@ -149,7 +144,7 @@
             ; For example, to set variable "01" to 100, you would use the following timestamp
             ; 0401020310 -> 010...
             [(equal? mode 'set-var)
-             ((hash-table-ref new-var-steps new-var-step) cmd)]
+             ((eval (cadadr (assoc new-var-step new-var-steps))) cmd)]
             [else (error "Unknown mode")])])
       (cond
         ; If we're using the default window size, we can assume that a "00"
