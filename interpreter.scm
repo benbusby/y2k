@@ -86,7 +86,7 @@
           (let ([new-var (cadr (assoc new-var-id variables))])
             (cond
               [(equal? new-var-type 'numeric)
-               (set-variable-str! new-var (string-append (variable-str new-var) (->string val)))
+               (set-variable-str! new-var (string-append (variable-str new-var) (number->string val)))
                (cond
                  [(= (string-length (variable-str new-var)) (variable-size new-var))
                   ; Reset window size back to 2 digits
