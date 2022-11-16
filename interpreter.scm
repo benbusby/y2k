@@ -44,12 +44,14 @@
 (define (set-var)   (update-mode 'set-var))
 (define (continue)  (set! mode prev-mode))
 
-; Define table for mapping program input->commands
+; Define mapping of program input->commands.
 ; Keys intentionally include a leading 0 to visually
 ; match how the interpreter will see it when parsing.
 (define commands
-  '((00 ,reset)     (01 ,continue)
-    (02 ,print-str) (03 ,print-var)
+  '((00 ,reset)
+    (01 ,continue)
+    (02 ,print-str)
+    (03 ,print-var)
     (04 ,set-var)))
 
 ; Define a table for storing variables
@@ -97,6 +99,7 @@
 
                   ; Reset all values pertaining to the creation of new variables
                   (set!-values (new-var-step new-var-id new-var-type) (values 0 -1 '()))
+                  (set! prev-mode 'none)
                   (reset)])]
               [else (error "Unsupported variable type")]))))))
 
@@ -111,10 +114,9 @@
   (sort! (find-files input test: ext-exp limit: 0) string<?))
 
 (define (parse-ts time-str index)
-  (unless (= index (string-length time-str))
-    (let ()
-      (set! w-size (if (not (= w-size next-w-size)) next-w-size w-size))
-      (define cmd (string->number (substring time-str index (+ index w-size))))
+  (set! w-size next-w-size)
+  (unless (> (+ index w-size) (string-length time-str))
+    (let ([cmd (string->number (substring time-str index (+ index w-size)))])
       (cond
         ; Refer to the main commands table if a mode has not yet been set,
         ; an escape sequence was entered, or we're beginning to parse a new file.
