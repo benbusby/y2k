@@ -5,6 +5,7 @@
   (chicken file posix)
   (chicken irregex)
   (chicken process-context)
+  (chicken sort)
   (chicken string))
 
 (load "variables.scm")
@@ -111,8 +112,8 @@
 (define (end-of-exp cmd)
   (and pause (= cmd 0)))
 
-(define (y2k-dirlist path)
-  (find-files path test: ext-exp limit: 0))
+(define (y2k-dirlist input)
+  (sort! (find-files input test: ext-exp limit: 0) string<?))
 
 (define (parse-ts time-str index)
   (unless (= index (string-length time-str))
@@ -175,6 +176,6 @@
        ; should be paused until the next file is read.
        (parse-ts time-str 0)
        (set! new-file #t))
-     (find-files input test: ext-exp limit: 0))
+     (y2k-dirlist input))
    (reset)]
   [else (error "Dir not found")])
