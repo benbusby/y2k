@@ -19,8 +19,6 @@
 (define prev-mode 'none)
 (define pause #f)
 (define new-file #t)
-(define w-size 2)
-(define next-w-size 2)
 
 (define (update-mode new-mode)
   (set! mode new-mode)
@@ -31,8 +29,8 @@
   (set! mode 'none)
 
   ; "Hard resets" should also ensure that the previous mode should be
-  ; erased and the window size should be returned to its original size.
-  (cond [hard-reset (set! prev-mode 'none) (set! next-w-size 2)]))
+  ; erased.
+  (cond [hard-reset (set! prev-mode 'none)]))
 
 ;; Define mapping of program input->commands.
 ;; Keys intentionally include a leading 0 to visually
@@ -66,28 +64,30 @@
       ; Use the two digit size provided here to create and
       ; insert the new variable.
       (let ([new-var (make-variable val "" 0 new-var-type)])
-        (set! variables (append variables `((,new-var-id ,new-var))))
-        (set! next-w-size 1)
+        (set! variables (append variables `((,new-var-id ,new-var)))))
 
       ; Now that we have the size, we can switch to single digit timestamp
       ; parsing until we've parsed the full number of digits for the variable.
-      (inc new-var-step)))
+      (inc new-var-step))
     ,(lambda (val)
       (let ([new-var (cadr (assoc new-var-id variables))])
-        (cond
-          [(equal? (variable-type new-var) 'numeric)
-           (set-variable-str!
-             new-var
-             (string-append (variable-str new-var) (number->string val)))
-           (cond
-             [(= (string-length (variable-str new-var)) (variable-size new-var))
-              ; Convert the string value to a numeric value
-              (set-variable-val! new-var (string->number (variable-str new-var)))
+        (for-each (lambda (c)
+          (unless (= (string-length (variable-str new-var)) (variable-size new-var))
+            (cond
+              [(equal? (variable-type new-var) 'numeric)
+               (set-variable-str!
+                 new-var
+                 (string-append (variable-str new-var) (string c)))
+               (cond
+                 [(= (string-length (variable-str new-var)) (variable-size new-var))
+                  ; Convert the string value to a numeric value
+                  (set-variable-val! new-var (string->number (variable-str new-var)))
 
-              ; Reset all values pertaining to the creation of new variables
-              (set!-values (new-var-step new-var-id new-var-type) (values 0 -1 '()))
-              (reset #t)])]
-          [else (error "Unsupported variable type")])))))
+                  ; Reset all values pertaining to the creation of new variables
+                  (set!-values (new-var-step new-var-id new-var-type) (values 0 -1 '()))
+                  (reset #t)])]
+              [else (error "Unsupported variable type")])))
+          (string->list (number->string val)))))))
 
 ;; Establish variables for tracking progress while
 ;; parsing timestamp values involved with modifying an
@@ -134,7 +134,6 @@
           ; Create a temporary variable to store the character codes/digits
           ; that will follow.
           (set! mod-tmp-var (make-variable val "" 0 (variable-type mod-target-var)))
-          (set! next-w-size 1)
           (inc mod-var-step)]))
     ,(lambda (val)
       ; Process single digit input
@@ -161,9 +160,8 @@
   (sort! (find-files input test: ext-exp limit: 0) string<?))
 
 (define (parse-ts time-str index)
-  (set! w-size next-w-size)
-  (unless (> (+ index w-size) (string-length time-str))
-    (let ([cmd (string->number (substring time-str index (+ index w-size)))])
+  (unless (> (+ index 2) (string-length time-str))
+    (let ([cmd (string->number (substring time-str index (+ index 2)))])
       (cond
         ; Refer to the main commands table if a mode has not yet been set,
         ; an escape sequence was entered, or we're beginning to parse a new file.
@@ -200,22 +198,20 @@
       (cond
         ; If we're using the default window size, we can assume that a "00"
         ; command should be interpreted as a pause in execution.
-        [(and (> w-size 1) (= cmd 0))
+        [(= cmd 0)
          (set! pause #t)])
-      (parse-ts time-str (+ index w-size)))))
+      (parse-ts time-str (+ index 2)))))
 
 ; Run the interpreter using the specified file or directory
 (cond
   [(directory-exists? input)
    (for-each
      (lambda (f)
-       ; If the current window size is the default (2), prepend a 0 to make
-       ; sure the initial command is always interpreted without throwing off
-       ; the rest of the commands in the time string. Each file always starts
-       ; with a 0X command.
-       (define time-str (if (= w-size 2)
-                          (string-append "0" (->string (get-ts f)))
-                          (->string (get-ts f))))
+       ; Prepend a 0 to make an even number of digits that can easily be parsed.
+       ; The first command of each file will always be <10, with 01 indicating the
+       ; continuation of a previous file in order to not adversely affect
+       ; multi-file operations.
+       (define time-str (string-append "0" (number->string (get-ts f))))
 
        ; Parse the file and enable the new-file flag to indicate that
        ; any in-progress parsing (commands split between multiple files)
