@@ -3,8 +3,11 @@
 (define variable-types
   '((00 'none) (01 'string) (02 'numeric)))
 
+(define (divide num1 num2)
+  (exact->inexact (/ num1 num2)))
+
 (define variable-ops-numeric
-  '((01 ,+) (02 ,-)))
+  '((01 ,+) (02 ,-) (03 ,*) (04 ,divide)))
 
 ; TODO - Need to decide if string ops are worth it
 ;(define variable-ops-string
