@@ -32,43 +32,44 @@
 
 ;; Establish a default variable that can be modified and stored as needed
 ;; throughout a program
-(define new-var default-variable)
+(define new-var default-var)
 (define (update-var val)
-  (cond [(< (variable-id new-var) 0)
+  (cond [(< (var-id new-var) 0)
          ; Set new variable "name"/id (just a 2-digit value to use
          ; when referencing the variable later in a program)
-         (set-variable-id! new-var val)]
-        [(equal? (variable-type new-var) 'none)
+         (set-var-id! new-var val)]
+        [(equal? (var-type new-var) 'none)
          ; Set the new variable data type
          ; TODO -- document types
-         (set-variable-type! new-var (cadadr (assoc val variable-types)))]
-        [(< (variable-size new-var) 0)
+         (set-var-type! new-var (cadadr (assoc val var-types)))]
+        [(< (var-size new-var) 0)
          ; Use the two digit size provided here to determine how many digits
          ; or characters marks the variable as "complete".
-         (set-variable-size! new-var val)]
-        [(not (= (string-length (variable-str new-var)) (variable-size new-var)))
-         ; Convert values passed by the interpreter into appropriate values for the
-         ; variable type.
-         (cond [(equal? (variable-type new-var) 'numeric)
+         (set-var-size! new-var val)]
+        [(not (= (string-length (var-str new-var)) (var-size new-var)))
+         ; Convert values passed by the interpreter into appropriate values
+         ; for the variable type.
+         (cond [(equal? (var-type new-var) 'numeric)
                 (for-each
                   (lambda (d)
                     (unless (var-str-comp new-var)
-                      (set-variable-str!
+                      (set-var-str!
                         new-var
-                        (string-append (variable-str new-var) (string d)))))
+                        (string-append (var-str new-var) (string d)))))
                   (string->list (number->string val)))]
                [else (error "Unsupported data type")])
 
-         ; Once the string length matches the specified variable size, we can finalize
-         ; the variable value into a number (if numeric) or just copy the string over.
+         ; Once the string length matches the specified variable size, we
+         ; can finalize the variable value into a number (if numeric) or
+         ; just copy the string over.
          (when (var-str-comp new-var)
-           (cond [(equal? (variable-type new-var) 'numeric)
-                  (set-variable-val! new-var (string->number (variable-str new-var)))]
-                 [(equal? (variable-type new-var) 'string)
-                  (set-variable-val! new-var (variable-str new-var))])
-           (let ([new-var-id (variable-id new-var)])
+           (cond [(equal? (var-type new-var) 'numeric)
+                  (set-var-val! new-var (string->number (var-str new-var)))]
+                 [(equal? (var-type new-var) 'string)
+                  (set-var-val! new-var (var-str new-var))])
+           (let ([new-var-id (var-id new-var)])
              (set! variables (append variables `((,new-var-id ,new-var))))
-             (set! new-var default-variable)
+             (set! new-var default-var)
              (set! mode 'standby)))]))
 
 ;; Establish variables for tracking progress while
@@ -162,7 +163,7 @@
             ; to print the value of the variable that matches the requested 2-digit
             ; value.
             [(equal? mode 'print-var)
-             (displayln (variable-val (cadr (assoc cmd variables))))
+             (displayln (var-val (cadr (assoc cmd variables))))
              (set! mode 'standby)]
             ; "set-var" mode initiates a chain of processing steps that allow sequential
             ; 2-digit codes to set up and store a variable value. Refer to the documentation
