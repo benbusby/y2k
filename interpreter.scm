@@ -7,41 +7,28 @@
   (chicken string))
 
 (load "variables.scm")
-(load "utils.scm")
 
 (define get-ts file-modification-time)
 (define input (list-ref (command-line-arguments) 0))
 (define ext-exp (irregex "^.*.y2k$"))
 (define printable " abcdefghijklmnopqrstuvwxyz!@#$%^&*()")
+(define (displayln val) (display val) (display "\n"))
 
 ;; Variables for handling different interpreter modes
 (define mode 'standby)
-(define prev-mode 'standby)
 (define pause #f)
 (define new-file #t)
-
-(define (update-mode new-mode)
-  (set! mode new-mode)
-  (set! prev-mode new-mode))
-
-(define (reset #!optional (hard-reset #f))
-  ; Reset back to base mode
-  (set! mode 'standby)
-
-  ; "Hard resets" should also ensure that the previous mode should be
-  ; set back to standby.
-  (cond [hard-reset (set! prev-mode 'standby)]))
 
 ;; Define mapping of program input->commands.
 ;; Keys intentionally include a leading 0 to visually
 ;; match how the interpreter will see it when parsing.
 (define commands
-  '(,reset ; --------------------------------- 00 : Reset
-    ,(lambda () (set! mode prev-mode)) ; ----- 01 : Continue from previous file
-    ,(lambda () (update-mode 'print-str)) ; -- 02 : Print string to console
-    ,(lambda () (update-mode 'print-var)) ; -- 03 : Print variable to console
-    ,(lambda () (update-mode 'set-var)) ; ---- 04 : Create a new variable
-    ,(lambda () (update-mode 'mod-var)))) ; -- 05 : Modify an existing variable
+  '(,(lambda () 'standby) ; ---- 00 : Reset
+    ,(lambda () mode) ; -------- 01 : Continue from previous file
+    ,(lambda () 'print-str) ; -- 02 : Print string to console
+    ,(lambda () 'print-var) ; -- 03 : Print variable to console
+    ,(lambda () 'set-var) ; ---- 04 : Create a new variable
+    ,(lambda () 'mod-var))) ; -- 05 : Modify an existing variable
 
 ;; Establish a default variable that can be modified and stored as needed
 ;; throughout a program
@@ -82,7 +69,7 @@
            (let ([new-var-id (variable-id new-var)])
              (set! variables (append variables `((,new-var-id ,new-var))))
              (set! new-var default-variable)
-             (reset #t)))]))
+             (set! mode 'standby)))]))
 
 ;; Establish variables for tracking progress while
 ;; parsing timestamp values involved with modifying an
@@ -161,7 +148,7 @@
         ; Refer to the main commands table if a mode has not yet been set,
         ; an escape sequence was entered, or we're beginning to parse a new file.
         [(or (equal? mode 'standby) (end-of-exp cmd) new-file)
-         ((eval (cadr (list-ref commands cmd))))
+         (set! mode ((eval (cadr (list-ref commands cmd)))))
          (set! new-file #f)]
         [else
           (set! pause #f)
@@ -176,7 +163,7 @@
             ; value.
             [(equal? mode 'print-var)
              (displayln (variable-val (cadr (assoc cmd variables))))
-             (reset)]
+             (set! mode 'standby)]
             ; "set-var" mode initiates a chain of processing steps that allow sequential
             ; 2-digit codes to set up and store a variable value. Refer to the documentation
             ; for more detail, but the tldr sequence is:
@@ -213,6 +200,5 @@
        ; should be paused until the next file is read.
        (parse-ts time-str 0)
        (set! new-file #t))
-     (y2k-dirlist input))
-   (reset)]
+     (y2k-dirlist input))]
   [else (error "Dir not found")])
