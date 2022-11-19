@@ -19,16 +19,21 @@
 (define pause #f)
 (define new-file #t)
 
-;; Define mapping of program input->commands.
+;; Define mapping of program input->modes
 ;; Keys intentionally include a leading 0 to visually
 ;; match how the interpreter will see it when parsing.
-(define commands
+;; (~/!) denotes incomplete/unavailable modes.
+(define modes
   '(,(lambda () 'standby) ; ---- 00 : Reset
     ,(lambda () mode) ; -------- 01 : Continue from previous file
     ,(lambda () 'print-str) ; -- 02 : Print string to console
     ,(lambda () 'print-var) ; -- 03 : Print variable to console
     ,(lambda () 'set-var) ; ---- 04 : Create a new variable
-    ,(lambda () 'mod-var))) ; -- 05 : Modify an existing variable
+    ,(lambda () 'mod-var) ; ---- 05 : (~) Modify an existing variable
+    ,(lambda () 'new-loop) ; --- 06 : (!) Create a loop
+    ,(lambda () 'new-cond) ; --- 07 : (!) Create a conditional
+    ,(lambda () 'new-fn) ; ----- 08 : (!) Create a new function
+    ,(lambda () 'call-fn))) ; -- 09 : (!) Call a function
 
 ;; Establish a default variable that can be modified and stored as needed
 ;; throughout a program
@@ -146,33 +151,37 @@
   (unless (> (+ index 2) (string-length time-str))
     (let ([cmd (string->number (substring time-str index (+ index 2)))])
       (cond
-        ; Refer to the main commands table if a mode has not yet been set,
-        ; an escape sequence was entered, or we're beginning to parse a new file.
+        ; Refer to the main modes table if a mode has not yet been set,
+        ; an escape sequence was entered, or we're beginning to parse a
+        ; new file.
         [(or (equal? mode 'standby) (end-of-exp cmd) new-file)
-         (set! mode ((eval (cadr (list-ref commands cmd)))))
+         (set! mode ((eval (cadr (list-ref modes cmd)))))
          (set! new-file #f)]
         [else
           (set! pause #f)
           (cond
-            ; "print-str" mode prints a sequence of characters, accessed using
-            ; 2-digit inputs, until commanded to stop ("0000") or the last file
-            ; is reached.
+            ; "print-str" mode prints a sequence of characters, accessed
+            ; using 2-digit inputs, until commanded to stop ("0000") or
+            ; the last file is reached.
             [(equal? mode 'print-str)
              (display (string-ref printable cmd))]
-            ; "print-var" mode accepts a single 2-digit input that will be used
-            ; to print the value of the variable that matches the requested 2-digit
-            ; value.
+            ; "print-var" mode accepts a single 2-digit input that will
+            ; be used to print the value of the variable that matches
+            ; the requested 2-digit value.
             [(equal? mode 'print-var)
              (displayln (var-val (cadr (assoc cmd variables))))
              (set! mode 'standby)]
-            ; "set-var" mode initiates a chain of processing steps that allow sequential
-            ; 2-digit codes to set up and store a variable value. Refer to the documentation
-            ; for more detail, but the tldr sequence is:
+            ; "set-var" mode initiates a sequence of processing steps that
+            ; allow each 2-digit code to initialize a different property of
+            ; a variable. Refer to the documentation for more detail,
+            ; but the tldr sequence is:
             ;
             ; set-var -> var name -> var type -> var size -> var value
             ;
-            ; For example, to set variable "01" to 100, you would use the following timestamp
-            ; 0401020310 -> 010...
+            ; For example, to set variable "01" to 100, you would use the
+            ; following timestamp:
+            ;
+            ; 0401020310 -> 0100...
             [(equal? mode 'set-var)
              (update-var cmd)]
             [(equal? mode 'mod-var)
@@ -190,10 +199,10 @@
   [(directory-exists? input)
    (for-each
      (lambda (f)
-       ; Prepend a 0 to make an even number of digits that can easily be parsed.
-       ; The first command of each file will always be <10, with 01 indicating the
-       ; continuation of a previous file in order to not adversely affect
-       ; multi-file operations.
+       ; Prepend a 0 to make an even number of digits that can easily be
+       ; parsed. The first command of each file will always be <10, with
+       ; 01 indicating the continuation of a previous file in order to
+       ; not break multi-file operations.
        (define time-str (string-append "0" (number->string (get-ts f))))
 
        ; Parse the file and enable the new-file flag to indicate that
