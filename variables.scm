@@ -20,9 +20,16 @@
     (eval (cadadr (assoc (variable-type var) variable-ops))))
 
 (define-record-type :variable
-  (make-variable size str val type)
+  (make-variable id size str val type)
   variable?
+  (id variable-id set-variable-id!)
   (size variable-size set-variable-size!)
   (type variable-type set-variable-type!)
   (str variable-str set-variable-str!)
   (val variable-val set-variable-val!))
+
+(define (var-str-comp t-var)
+  (= (string-length (variable-str t-var)) (variable-size t-var)))
+
+(define default-variable
+  (make-variable -1 -1 "" -1 'none))

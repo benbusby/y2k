@@ -15,8 +15,8 @@
 (define printable " abcdefghijklmnopqrstuvwxyz!@#$%^&*()")
 
 ;; Variables for handling different interpreter modes
-(define mode 'none)
-(define prev-mode 'none)
+(define mode 'standby)
+(define prev-mode 'standby)
 (define pause #f)
 (define new-file #t)
 
@@ -26,11 +26,11 @@
 
 (define (reset #!optional (hard-reset #f))
   ; Reset back to base mode
-  (set! mode 'none)
+  (set! mode 'standby)
 
   ; "Hard resets" should also ensure that the previous mode should be
-  ; erased.
-  (cond [hard-reset (set! prev-mode 'none)]))
+  ; set back to standby.
+  (cond [hard-reset (set! prev-mode 'standby)]))
 
 ;; Define mapping of program input->commands.
 ;; Keys intentionally include a leading 0 to visually
@@ -43,51 +43,46 @@
     ,(lambda () (update-mode 'set-var)) ; ---- 04 : Create a new variable
     ,(lambda () (update-mode 'mod-var)))) ; -- 05 : Modify an existing variable
 
-;; Establish variables for tracking progress while
-;; parsing timestamp values involved with creating a
-;; new variable.
-(define new-var-step   0)
-(define new-var-id    -1)
-(define new-var-type '())
-(define new-var-steps
-  '(,(lambda (val)
-      ; Set new variable "name" (a 2-digit value to use
-      ; when referencing the variable in a program)
-      (set! new-var-id val)
-      (inc new-var-step))
-    ,(lambda (val)
-      ; Set the new variable data type
-      ; TODO -- document types
-      (set! new-var-type (cadadr (assoc val variable-types)))
-      (inc new-var-step))
-    ,(lambda (val)
-      ; Use the two digit size provided here to create and
-      ; insert the new variable.
-      (let ([new-var (make-variable val "" 0 new-var-type)])
-        (set! variables (append variables `((,new-var-id ,new-var)))))
+;; Establish a default variable that can be modified and stored as needed
+;; throughout a program
+(define new-var default-variable)
+(define (update-var val)
+  (cond [(< (variable-id new-var) 0)
+         ; Set new variable "name"/id (just a 2-digit value to use
+         ; when referencing the variable later in a program)
+         (set-variable-id! new-var val)]
+        [(equal? (variable-type new-var) 'none)
+         ; Set the new variable data type
+         ; TODO -- document types
+         (set-variable-type! new-var (cadadr (assoc val variable-types)))]
+        [(< (variable-size new-var) 0)
+         ; Use the two digit size provided here to determine how many digits
+         ; or characters marks the variable as "complete".
+         (set-variable-size! new-var val)]
+        [(not (= (string-length (variable-str new-var)) (variable-size new-var)))
+         ; Convert values passed by the interpreter into appropriate values for the
+         ; variable type.
+         (cond [(equal? (variable-type new-var) 'numeric)
+                (for-each
+                  (lambda (d)
+                    (unless (var-str-comp new-var)
+                      (set-variable-str!
+                        new-var
+                        (string-append (variable-str new-var) (string d)))))
+                  (string->list (number->string val)))]
+               [else (error "Unsupported data type")])
 
-      ; Now that we have the size, we can switch to single digit timestamp
-      ; parsing until we've parsed the full number of digits for the variable.
-      (inc new-var-step))
-    ,(lambda (val)
-      (let ([new-var (cadr (assoc new-var-id variables))])
-        (for-each (lambda (c)
-          (unless (= (string-length (variable-str new-var)) (variable-size new-var))
-            (cond
-              [(equal? (variable-type new-var) 'numeric)
-               (set-variable-str!
-                 new-var
-                 (string-append (variable-str new-var) (string c)))
-               (cond
-                 [(= (string-length (variable-str new-var)) (variable-size new-var))
-                  ; Convert the string value to a numeric value
-                  (set-variable-val! new-var (string->number (variable-str new-var)))
-
-                  ; Reset all values pertaining to the creation of new variables
-                  (set!-values (new-var-step new-var-id new-var-type) (values 0 -1 '()))
-                  (reset #t)])]
-              [else (error "Unsupported variable type")])))
-          (string->list (number->string val)))))))
+         ; Once the string length matches the specified variable size, we can finalize
+         ; the variable value into a number (if numeric) or just copy the string over.
+         (when (var-str-comp new-var)
+           (cond [(equal? (variable-type new-var) 'numeric)
+                  (set-variable-val! new-var (string->number (variable-str new-var)))]
+                 [(equal? (variable-type new-var) 'string)
+                  (set-variable-val! new-var (variable-str new-var))])
+           (let ([new-var-id (variable-id new-var)])
+             (set! variables (append variables `((,new-var-id ,new-var))))
+             (set! new-var default-variable)
+             (reset #t)))]))
 
 ;; Establish variables for tracking progress while
 ;; parsing timestamp values involved with modifying an
@@ -165,7 +160,7 @@
       (cond
         ; Refer to the main commands table if a mode has not yet been set,
         ; an escape sequence was entered, or we're beginning to parse a new file.
-        [(or (equal? mode 'none) (end-of-exp cmd) new-file)
+        [(or (equal? mode 'standby) (end-of-exp cmd) new-file)
          ((eval (cadr (list-ref commands cmd))))
          (set! new-file #f)]
         [else
@@ -191,7 +186,7 @@
             ; For example, to set variable "01" to 100, you would use the following timestamp
             ; 0401020310 -> 010...
             [(equal? mode 'set-var)
-             ((eval (cadr (list-ref new-var-steps new-var-step))) cmd)]
+             (update-var cmd)]
             [(equal? mode 'mod-var)
              ((eval (cadr (list-ref mod-var-steps mod-var-step))) cmd)]
             [else (error "Unknown mode")])])
