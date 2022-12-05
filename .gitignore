@@ -1,3 +1,4 @@
-# Unix timestamps aren't preserved in git
+# Unix timestamps aren't preserved in git, so no point in storing
+# y2k files
 *.y2k
 y2k
