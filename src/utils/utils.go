@@ -10,6 +10,8 @@ import (
 )
 
 var Y2KExt = ".y2k"
+var Printable = " abcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()"
+var PrintStringTerm = "  "
 
 func GetFileModTime(path string, zeroPad bool) string {
 	info, err := os.Stat(path)
@@ -32,6 +34,36 @@ func SafeStrToInt(input string) int {
 	}
 
 	return numVal
+}
+
+func SafeStrArrToInt(input []string) int {
+	numVal, err := strconv.Atoi(strings.Join(input, ""))
+	if err != nil {
+		return 0
+	}
+
+	return numVal
+}
+
+func StrArrToPrintable(input []string) string {
+	output := ""
+	for _, val := range input {
+		output += string(Printable[SafeStrToInt(val)])
+	}
+
+	return output
+}
+
+func SplitStrByN(input string, n int) []string {
+	var output []string
+
+	for len(input) != 0 && n < len(input) {
+		output = append(output, input[:n])
+		input = input[n:]
+	}
+
+	output = append(output, input)
+	return output
 }
 
 func GetDirTimestamps(dir string, zeroPad bool) []string {

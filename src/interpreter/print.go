@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"y2k/src/utils"
 )
-
-var Printable = " abcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()"
-var PrintStringTerm = "  "
 
 // Y2KPrintType is an enum to indicate to the interpreter what should be printed.
 type Y2KPrintType uint8
@@ -59,10 +57,10 @@ func (y2k *Y2K) ParsePrint(timestamp string, print Y2KPrint) string {
 		// Otherwise we need to begin building a string until there have been two
 		// back-to-back spaces (two 0 inputs). This is just an arbitrary way of
 		// determining when parsing of a print string should end.
-		print.String += string(Printable[command])
+		print.String += string(utils.Printable[command])
 
-		if strings.HasSuffix(print.String, PrintStringTerm) {
-			fmt.Println(print.String[0 : len(print.String)-len(PrintStringTerm)])
+		if strings.HasSuffix(print.String, utils.PrintStringTerm) {
+			fmt.Println(print.String[0 : len(print.String)-len(utils.PrintStringTerm)])
 			return timestamp
 		}
 	}

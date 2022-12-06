@@ -31,19 +31,6 @@ type Y2KVar struct {
 	Type      Y2KVarType
 }
 
-// AddToVar directly modifies a variable by adding a second value to either its
-// NumberVal or StringVal property (depending on variable data type).
-func (y2kVar *Y2KVar) AddToVar(newVal string) {
-	switch y2kVar.Type {
-	case Y2KString:
-		y2kVar.StringVal += string(Printable[utils.SafeStrToInt(newVal)])
-		break
-	case Y2KNumber:
-		y2kVar.NumberVal += utils.SafeStrToInt(newVal)
-		break
-	}
-}
-
 // GetValue returns the appropriate value for a particular variable. If it's a
 // numeric variable, it returns the numeric value, otherwise it returns the
 // string value.
