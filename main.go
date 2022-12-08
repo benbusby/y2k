@@ -16,15 +16,15 @@ func main() {
 
 	for _, arg := range flag.Args() {
 		// Assume first argument is the directory to use for parsing
-		if len(y2k.Timestamps) == 0 {
-			y2k.Timestamps = utils.GetDirTimestamps(arg, *digits > 1)
+		if len(y2k.Timestamp) == 0 {
+			y2k.Timestamp = utils.GetDirTimestamps(arg, *digits)
 			continue
 		}
 
 		interpreter.FromCLIArg(arg, *digits)
 	}
 
-	if len(y2k.Timestamps) == 0 {
+	if len(y2k.Timestamp) == 0 {
 		fmt.Println("Missing input directory!\n\nUsage: y2k <directory> [args]")
 		flag.PrintDefaults()
 		return

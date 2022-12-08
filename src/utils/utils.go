@@ -10,7 +10,7 @@ import (
 )
 
 var Y2KExt = ".y2k"
-var Printable = " abcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()"
+var Printable = " abcdefghijklmnopqrstuvwxyz!@#$%^&*()"
 var PrintStringTerm = "  "
 
 func GetFileModTime(path string, zeroPad bool) string {
@@ -66,8 +66,8 @@ func SplitStrByN(input string, n int) []string {
 	return output
 }
 
-func GetDirTimestamps(dir string, zeroPad bool) []string {
-	var timestamps []string
+func GetDirTimestamps(dir string, digits int) string {
+	var fullTimestamp = ""
 	files, err := os.ReadDir(dir)
 
 	// Ensure the directory is actually valid before continuing
@@ -92,9 +92,16 @@ func GetDirTimestamps(dir string, zeroPad bool) []string {
 
 		// Append timestamp to slice
 		fullPath := filepath.Join(directoryPath, file.Name())
-		timestamp := GetFileModTime(fullPath, zeroPad)
-		timestamps = append(timestamps, timestamp)
+		timestamp := GetFileModTime(fullPath, digits > 1)
+		if len(fullTimestamp) != 0 {
+			// Snip off the leading digit for all timestamps except
+			// the first one. We do this to avoid issues with commands
+			// spanning across multiple files, where the next desired
+			// digit might be a "0" (which would be ignored in a timestamp)
+			timestamp = timestamp[digits:]
+		}
+		fullTimestamp += timestamp
 	}
 
-	return timestamps
+	return fullTimestamp
 }

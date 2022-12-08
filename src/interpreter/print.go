@@ -27,11 +27,12 @@ func (y2k *Y2K) ParsePrint(timestamp string, print Y2KPrint) string {
 	// a string.
 	if y2k.Digits > len(timestamp) {
 		if print.Type == Y2KPrintString {
-			fmt.Println(print.String)
+			y2k.OutputMsg(print.String)
 		}
 		return timestamp
 	}
 
+	y2k.DebugMsg(fmt.Sprintf("ParsePrint: [%s]%s", timestamp[:y2k.Digits], timestamp[y2k.Digits:]))
 	command, _ := strconv.Atoi(timestamp[:y2k.Digits])
 
 	if print.Type == Y2KPrintNone {
@@ -41,15 +42,15 @@ func (y2k *Y2K) ParsePrint(timestamp string, print Y2KPrint) string {
 		}
 
 		print.Type = Y2KPrintType(command)
-		y2k.DebugMsg(fmt.Sprintf("  Set Print Type: %d", print.Type))
+		y2k.DebugMsg(fmt.Sprintf("    (Set Print Type: %d)", print.Type))
 	} else {
 		// If we're printing a variable, the next input will be the variable ID.
 		// We can use that to print the variable value and return the timestamp
 		// back to the caller.
 		if print.Type == Y2KPrintVar {
-			y2k.DebugMsg(fmt.Sprintf("  Print Var: %d", command))
+			y2k.DebugMsg(fmt.Sprintf("    (Print Var: %d)", command))
 			variable := VarMap[uint8(command)]
-			fmt.Println(variable.GetValue())
+			y2k.OutputMsg(variable.GetValue())
 
 			return timestamp
 		}
@@ -59,8 +60,13 @@ func (y2k *Y2K) ParsePrint(timestamp string, print Y2KPrint) string {
 		// determining when parsing of a print string should end.
 		print.String += string(utils.Printable[command])
 
+		if command > 0 {
+			y2k.DebugMsg(fmt.Sprintf("    \"%s\"", print.String))
+		}
+
 		if strings.HasSuffix(print.String, utils.PrintStringTerm) {
-			fmt.Println(print.String[0 : len(print.String)-len(utils.PrintStringTerm)])
+			y2k.DebugMsg("    (End Print)")
+			y2k.OutputMsg(print.String[0 : len(print.String)-len(utils.PrintStringTerm)])
 			return timestamp
 		}
 	}

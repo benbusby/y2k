@@ -6,9 +6,9 @@ import (
 )
 
 type Y2K struct {
-	Debug      bool
-	Digits     int
-	Timestamps []string
+	Debug     bool
+	Digits    int
+	Timestamp string
 }
 
 // Y2KCommand is an enum to indicate how the interpreter should respond to
@@ -30,43 +30,48 @@ func (y2k *Y2K) DebugMsg(msg string) {
 	}
 }
 
+func (y2k *Y2K) OutputMsg(msg string) {
+	debugPrefix := ""
+	if y2k.Debug {
+		debugPrefix = "    OUTPUT: "
+	}
+
+	fmt.Println(fmt.Sprintf("%s%s", debugPrefix, msg))
+}
+
 // Parse manages interpreter state and hands off timestamp parsing to the
 // appropriate function when changes to interpreter state are made.
 // For example, creation of a variable jumps from STANDBY to SET states,
 // and moves timestamp parsing to ParseVariable until that function passes
 // parsing back to Parse.
 func (y2k *Y2K) Parse(timestamp string) {
-	if y2k.Digits > len(timestamp) {
-		// Finished parsing
-		return
-	}
-
 	// Extract a portion of the timestamp, with size determined by the Y2K.Digits field.
+	y2k.DebugMsg(fmt.Sprintf("Parse: [%s]%s", timestamp[:y2k.Digits], timestamp[y2k.Digits:]))
 	command, _ := strconv.Atoi(timestamp[:y2k.Digits])
 
 	switch Y2KCommand(command) {
 	case PRINT:
-		y2k.DebugMsg(fmt.Sprintf("%d: Print", command))
+		y2k.DebugMsg(fmt.Sprintf("    (%d->ParsePrint)", command))
 		timestamp = y2k.ParsePrint(timestamp[y2k.Digits:], Y2KPrint{})
 		break
 	case SET:
-		y2k.DebugMsg(fmt.Sprintf("%d: Create Variable", command))
+		y2k.DebugMsg(fmt.Sprintf("    (%d->ParseVariable)", command))
 		timestamp = y2k.ParseVariable(timestamp[y2k.Digits:], Y2KVar{})
 		break
 	case MODIFY:
-		y2k.DebugMsg(fmt.Sprintf("%d: Modify Variable", command))
-		//timestamp = y2k.ParseModify(timestamp[y2k.Digits:], Y2KMod{})
+		y2k.DebugMsg(fmt.Sprintf("    (%d->ParseModify)", command))
+		timestamp = y2k.ParseModify(timestamp[y2k.Digits:], Y2KMod{})
 		break
+	}
+
+	if y2k.Digits > len(timestamp)-y2k.Digits {
+		// Finished parsing
+		return
 	}
 
 	y2k.Parse(timestamp[y2k.Digits:])
 }
 
 func (y2k *Y2K) Run() {
-	// FIXME: Refactor this to use one timestamp created from multiple files,
-	// rather than a list of timestamps. This will eliminate the issues around
-	// commands that span multiple files.
-	for _, timestamp := range y2k.Timestamps {
-		y2k.Parse(timestamp)
-	}
+	y2k.Parse(y2k.Timestamp)
 }
