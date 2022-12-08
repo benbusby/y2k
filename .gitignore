@@ -2,3 +2,5 @@
 # y2k files
 *.y2k
 y2k
+
+.idea
