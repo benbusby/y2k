@@ -8,10 +8,8 @@ Contents
 
 ## Install
 
-### From Source
-1. Install [Chicken Scheme](https://code.call-cc.org/)
-2. Clone repo: `git clone https://git.sr.ht:~benbusby/y2k`
-3. Build: `chicken-csc -o y2k interpreter.scm`
+### Go
+`go install github.com/benbusby/y2k@latest`
 
 ## Usage
 
