@@ -21,6 +21,7 @@ var modMap = map[uint8]func(*Y2KVar, []string){
 	2: SubtractFromVar,
 	3: MultiplyVar,
 	4: DivideVar,
+	5: AddVarToVar,
 }
 
 // AddToVar directly modifies a variable by adding a second value to either its
@@ -32,6 +33,17 @@ func AddToVar(y2kVar *Y2KVar, values []string) {
 		break
 	default:
 		y2kVar.NumberVal += utils.SafeStrArrToInt(values)
+		break
+	}
+}
+
+func AddVarToVar(y2kVar *Y2KVar, values []string) {
+	switch y2kVar.Type {
+	case Y2KString:
+		y2kVar.StringVal += VarMap[uint8(utils.SafeStrArrToInt(values))].StringVal
+		break
+	default:
+		y2kVar.NumberVal += VarMap[uint8(utils.SafeStrArrToInt(values))].NumberVal
 		break
 	}
 }
@@ -97,17 +109,17 @@ func (y2k *Y2K) ParseModify(timestamp string, varMod Y2KMod) string {
 
 	if varMod.VarID == 0 {
 		varMod.VarID = uint8(command)
-		y2k.DebugMsg(fmt.Sprintf("  Variable ID: %d", varMod.VarID))
+		y2k.DebugMsg(fmt.Sprintf("      Variable ID: %d", varMod.VarID))
 	} else if varMod.ModFunction == nil {
 		varMod.ModFunction = modMap[uint8(command)]
-		y2k.DebugMsg(fmt.Sprintf("  Function: %d", command))
+		y2k.DebugMsg(fmt.Sprintf("      Function: %d", command))
 	} else if varMod.ModSize == 0 {
 		varMod.ModSize = uint8(command)
-		y2k.DebugMsg(fmt.Sprintf("  Modifier Size: %d", varMod.ModSize))
+		y2k.DebugMsg(fmt.Sprintf("      Modifier Size: %d", varMod.ModSize))
 	} else {
 		strVal := strconv.Itoa(command)
 		varMod.ModValue += strVal
-		y2k.DebugMsg(fmt.Sprintf("    (+ value: %s)", strVal))
+		y2k.DebugMsg(fmt.Sprintf("        (+ value: %s)", strVal))
 
 		if len(varMod.ModValue) >= int(varMod.ModSize) {
 			// Although we have the desired size of the modification, we don't know

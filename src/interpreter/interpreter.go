@@ -19,6 +19,7 @@ const (
 	PRINT  Y2KCommand = 9
 	SET    Y2KCommand = 8
 	MODIFY Y2KCommand = 7
+	WHILE  Y2KCommand = 6
 )
 
 // DebugMsg is used for printing useful info about what operations the
@@ -45,8 +46,11 @@ func (y2k *Y2K) OutputMsg(msg string) {
 // and moves timestamp parsing to ParseVariable until that function passes
 // parsing back to Parse.
 func (y2k *Y2K) Parse(timestamp string) {
-	// Extract a portion of the timestamp, with size determined by the Y2K.Digits field.
-	y2k.DebugMsg(fmt.Sprintf("Parse: [%s]%s", timestamp[:y2k.Digits], timestamp[y2k.Digits:]))
+	// Extract a portion of the timestamp, with size determined by the
+	// Y2K.Digits field.
+	y2k.DebugMsg(fmt.Sprintf("Parse: [%s]%s",
+		timestamp[:y2k.Digits],
+		timestamp[y2k.Digits:]))
 	command, _ := strconv.Atoi(timestamp[:y2k.Digits])
 
 	switch Y2KCommand(command) {
@@ -62,6 +66,10 @@ func (y2k *Y2K) Parse(timestamp string) {
 		y2k.DebugMsg(fmt.Sprintf("    (%d->ParseModify)", command))
 		timestamp = y2k.ParseModify(timestamp[y2k.Digits:], Y2KMod{})
 		break
+	case WHILE:
+		y2k.DebugMsg(fmt.Sprintf("    (%d->ParseWhile)", command))
+		timestamp = y2k.ParseWhile(timestamp[y2k.Digits:], Y2KWhile{})
+		break
 	}
 
 	if y2k.Digits > len(timestamp)-y2k.Digits {
@@ -70,8 +78,4 @@ func (y2k *Y2K) Parse(timestamp string) {
 	}
 
 	y2k.Parse(timestamp[y2k.Digits:])
-}
-
-func (y2k *Y2K) Run() {
-	y2k.Parse(y2k.Timestamp)
 }
