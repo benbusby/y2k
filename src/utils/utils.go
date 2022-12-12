@@ -14,7 +14,7 @@ var Printable = " abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
 	"1234567890" +
 	"!@#$%^&*()+-<>.,"
-var PrintStringTerm = "  "
+var StrTerm = "  "
 var FnTerm = "1999"
 var DebugDivider = "=============================="
 
@@ -32,7 +32,7 @@ func GetFileModTime(path string, zeroPad bool) string {
 	return "00"
 }
 
-func SafeStrToInt(input string) int {
+func StrToInt(input string) int {
 	numVal, err := strconv.Atoi(input)
 	if err != nil {
 		return 0
@@ -41,7 +41,7 @@ func SafeStrToInt(input string) int {
 	return numVal
 }
 
-func SafeStrArrToInt(input []string) int {
+func StrArrToInt(input []string) int {
 	numVal, err := strconv.Atoi(strings.Join(input, ""))
 	if err != nil {
 		return 0
@@ -53,7 +53,7 @@ func SafeStrArrToInt(input []string) int {
 func StrArrToPrintable(input []string) string {
 	output := ""
 	for _, val := range input {
-		output += string(Printable[SafeStrToInt(val)])
+		output += string(Printable[StrToInt(val)])
 	}
 
 	return output

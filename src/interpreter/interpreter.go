@@ -3,6 +3,7 @@ package interpreter
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type Y2K struct {
@@ -25,9 +26,9 @@ const (
 // DebugMsg is used for printing useful info about what operations the
 // interpreter is performing, and inspecting the values from the timestamps
 // that are being interpreted.
-func (y2k *Y2K) DebugMsg(msg string) {
+func (y2k *Y2K) DebugMsg(prefixSpaces int, msg string) {
 	if y2k.Debug {
-		fmt.Println(msg)
+		fmt.Println(strings.Repeat(" ", prefixSpaces), msg)
 	}
 }
 
@@ -48,26 +49,26 @@ func (y2k *Y2K) OutputMsg(msg string) {
 func (y2k *Y2K) Parse(timestamp string) {
 	// Extract a portion of the timestamp, with size determined by the
 	// Y2K.Digits field.
-	y2k.DebugMsg(fmt.Sprintf("Parse: [%s]%s",
+	y2k.DebugMsg(0, fmt.Sprintf("Parse: [%s]%s",
 		timestamp[:y2k.Digits],
 		timestamp[y2k.Digits:]))
 	command, _ := strconv.Atoi(timestamp[:y2k.Digits])
 
 	switch Y2KCommand(command) {
 	case PRINT:
-		y2k.DebugMsg(fmt.Sprintf("    (%d->ParsePrint)", command))
+		y2k.DebugMsg(4, fmt.Sprintf("(%d->ParsePrint)", command))
 		timestamp = y2k.ParsePrint(timestamp[y2k.Digits:], Y2KPrint{})
 		break
 	case SET:
-		y2k.DebugMsg(fmt.Sprintf("    (%d->ParseVariable)", command))
+		y2k.DebugMsg(4, fmt.Sprintf("(%d->ParseVariable)", command))
 		timestamp = y2k.ParseVariable(timestamp[y2k.Digits:], Y2KVar{})
 		break
 	case MODIFY:
-		y2k.DebugMsg(fmt.Sprintf("    (%d->ParseModify)", command))
+		y2k.DebugMsg(4, fmt.Sprintf("(%d->ParseModify)", command))
 		timestamp = y2k.ParseModify(timestamp[y2k.Digits:], Y2KMod{})
 		break
 	case WHILE:
-		y2k.DebugMsg(fmt.Sprintf("    (%d->ParseWhile)", command))
+		y2k.DebugMsg(4, fmt.Sprintf("(%d->ParseWhile)", command))
 		timestamp = y2k.ParseWhile(timestamp[y2k.Digits:], Y2KWhile{})
 		break
 	}

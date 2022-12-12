@@ -17,22 +17,24 @@ const (
 )
 
 type Y2KPrint struct {
-	Type   Y2KPrintType
-	String string
+	Type Y2KPrintType
+	Str  string
 }
 
 func (y2k *Y2K) ParsePrint(timestamp string, print Y2KPrint) string {
-	// If a print statement aligns with the end of the timestamp, we can at least
-	// just print the contents of Y2KPrint.String, if the user was wanting to print
-	// a string.
+	// If a print statement aligns with the end of the timestamp, we can at
+	// least just print the contents of Y2KPrint.Str, if the user was
+	// wanting to print a string.
 	if y2k.Digits > len(timestamp) {
 		if print.Type == Y2KPrintString {
-			y2k.OutputMsg(print.String)
+			y2k.OutputMsg(print.Str)
 		}
 		return timestamp
 	}
 
-	y2k.DebugMsg(fmt.Sprintf("ParsePrint: [%s]%s", timestamp[:y2k.Digits], timestamp[y2k.Digits:]))
+	y2k.DebugMsg(0, fmt.Sprintf("ParsePrint: [%s]%s",
+		timestamp[:y2k.Digits],
+		timestamp[y2k.Digits:]))
 	command, _ := strconv.Atoi(timestamp[:y2k.Digits])
 
 	if print.Type == Y2KPrintNone {
@@ -42,13 +44,13 @@ func (y2k *Y2K) ParsePrint(timestamp string, print Y2KPrint) string {
 		}
 
 		print.Type = Y2KPrintType(command)
-		y2k.DebugMsg(fmt.Sprintf("    (Set Print Type: %d)", print.Type))
+		y2k.DebugMsg(4, fmt.Sprintf("(Set Print Type: %d)", print.Type))
 	} else {
 		// If we're printing a variable, the next input will be the variable ID.
 		// We can use that to print the variable value and return the timestamp
 		// back to the caller.
 		if print.Type == Y2KPrintVar {
-			y2k.DebugMsg(fmt.Sprintf("    (Print Var: %d)", command))
+			y2k.DebugMsg(4, fmt.Sprintf("(Print Var: %d)", command))
 			variable := VarMap[uint8(command)]
 			y2k.OutputMsg(variable.GetValue())
 
@@ -58,15 +60,15 @@ func (y2k *Y2K) ParsePrint(timestamp string, print Y2KPrint) string {
 		// Otherwise we need to begin building a string until there have been two
 		// back-to-back spaces (two 0 inputs). This is just an arbitrary way of
 		// determining when parsing of a print string should end.
-		print.String += string(utils.Printable[command])
+		print.Str += string(utils.Printable[command])
 
 		if command > 0 {
-			y2k.DebugMsg(fmt.Sprintf("    \"%s\"", print.String))
+			y2k.DebugMsg(4, fmt.Sprintf("\"%s\"", print.Str))
 		}
 
-		if strings.HasSuffix(print.String, utils.PrintStringTerm) {
-			y2k.DebugMsg("    (End Print)")
-			y2k.OutputMsg(print.String[0 : len(print.String)-len(utils.PrintStringTerm)])
+		if strings.HasSuffix(print.Str, utils.StrTerm) {
+			y2k.DebugMsg(4, "(End Print)")
+			y2k.OutputMsg(print.Str[0 : len(print.Str)-len(utils.StrTerm)])
 			return timestamp
 		}
 	}

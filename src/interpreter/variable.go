@@ -61,30 +61,30 @@ func (y2k *Y2K) ParseVariable(timestamp string, newVar Y2KVar) string {
 	if newVar.ID == 0 {
 		// Step 1 -- Set variable id
 		newVar.ID = uint8(command)
-		y2k.DebugMsg(fmt.Sprintf("  Set ID: %d", newVar.ID))
+		y2k.DebugMsg(4, fmt.Sprintf("Set ID: %d", newVar.ID))
 	} else if newVar.Type == Y2KNoType {
 		// Step 2 -- Set variable type
 		newVar.Type = Y2KVarType(command)
-		y2k.DebugMsg(fmt.Sprintf("  Set Type: %d", newVar.Type))
+		y2k.DebugMsg(4, fmt.Sprintf("Set Type: %d", newVar.Type))
 	} else if newVar.Size == 0 {
 		// Step 3 -- Set variable size
 		newVar.Size = uint8(command)
-		y2k.DebugMsg(fmt.Sprintf("  Set Size: %d", newVar.Size))
+		y2k.DebugMsg(4, fmt.Sprintf("Set Size: %d", newVar.Size))
 	} else {
 		// Step 4 -- Init new var values
-		// Regardless of data type, this is created as a string first, in
-		// order to sequentially create the variable value across multiple passes
-		// of the parser (i.e. 100 has to be split between multiple passes, so
-		// "1" is added first, then "0", then the last "0", then converted to
-		// an integer).
+		// Regardless of data type, this is created as a string first, in order
+		// to sequentially create the variable value across multiple passes of
+		// the parser (i.e. 100 has to be split between multiple passes, so "1"
+		// is added first, then "0", then the last "0", then converted to an
+		// integer).
 		strVal := strconv.Itoa(command)
 		newVar.StringVal += strVal
-		y2k.DebugMsg(fmt.Sprintf("    (+ value: %s)", strVal))
+		y2k.DebugMsg(6, fmt.Sprintf("(+ value: %s)", strVal))
 		if len(newVar.StringVal) >= int(newVar.Size) {
 			numericVal, _ := strconv.Atoi(newVar.StringVal[:newVar.Size])
 			newVar.NumberVal = numericVal
 
-			y2k.DebugMsg(fmt.Sprintf("  Set Value: %d", newVar.NumberVal))
+			y2k.DebugMsg(4, fmt.Sprintf("Set Val: %d", newVar.NumberVal))
 
 			// Insert finished variable into variable map
 			VarMap[newVar.ID] = &newVar
@@ -99,8 +99,8 @@ func (y2k *Y2K) ParseVariable(timestamp string, newVar Y2KVar) string {
 
 // FromCLIArg takes a command line argument and turns it into a variable for the
 // programs to reference as needed. Variables added from the command line are
-// inserted into the map backwards from the map's max index (9 for 1-digit parsing,
-// 99 for 2-digit parsing, etc).
+// inserted into the map backwards from the map's max index (9 for 1-digit
+// parsing, 99 for 2-digit parsing, etc).
 func FromCLIArg(input string, parsingSize int) {
 	// Determine if the argument is a string or numeric.
 	// Assume the variable is numeric, unless a non-numeric other than '.' is
@@ -113,8 +113,8 @@ func FromCLIArg(input string, parsingSize int) {
 	}
 
 	// Command line variables are added to the end of the map, which depends on
-	// the number of digits that are parsed at one time (a parsing size of 1 should
-	// insert variables from 9->8->etc, whereas a parsing size of 2 should insert
+	// the number of digits that are parsed at one time (a parsing size of 1
+	// should insert variables from 9->8->etc, a parsing size of 2 should insert
 	// from 99->98->etc.)
 	mapInd, _ := strconv.Atoi(strings.Repeat("9", parsingSize))
 	for VarMap[uint8(mapInd)] != nil {
@@ -126,7 +126,7 @@ func FromCLIArg(input string, parsingSize int) {
 		ID:        uint8(mapInd),
 		Size:      uint8(len(input)),
 		StringVal: input,
-		NumberVal: utils.SafeStrToInt(input),
+		NumberVal: utils.StrToInt(input),
 		Type:      argType,
 	}
 }
