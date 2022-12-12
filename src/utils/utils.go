@@ -10,7 +10,10 @@ import (
 )
 
 var Y2KExt = ".y2k"
-var Printable = " abcdefghijklmnopqrstuvwxyz!@#$%^&*()"
+var Printable = " abcdefghijklmnopqrstuvwxyz" +
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+	"1234567890" +
+	"!@#$%^&*()+-<>.,"
 var PrintStringTerm = "  "
 
 func GetFileModTime(path string, zeroPad bool) string {

@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"y2k/src/utils"
@@ -96,12 +97,17 @@ func (y2k *Y2K) ParseModify(timestamp string, varMod Y2KMod) string {
 
 	if varMod.VarID == 0 {
 		varMod.VarID = uint8(command)
+		y2k.DebugMsg(fmt.Sprintf("  Variable ID: %d", varMod.VarID))
 	} else if varMod.ModFunction == nil {
 		varMod.ModFunction = modMap[uint8(command)]
+		y2k.DebugMsg(fmt.Sprintf("  Function: %d", command))
 	} else if varMod.ModSize == 0 {
 		varMod.ModSize = uint8(command)
+		y2k.DebugMsg(fmt.Sprintf("  Modifier Size: %d", varMod.ModSize))
 	} else {
-		varMod.ModValue += strconv.Itoa(command)
+		strVal := strconv.Itoa(command)
+		varMod.ModValue += strVal
+		y2k.DebugMsg(fmt.Sprintf("    (+ value: %s)", strVal))
 
 		if len(varMod.ModValue) >= int(varMod.ModSize) {
 			// Although we have the desired size of the modification, we don't know
