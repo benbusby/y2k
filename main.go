@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	var timestamp string
 	digits := flag.Int(
 		"d",
 		2,
@@ -27,19 +28,19 @@ func main() {
 
 	for _, arg := range flag.Args() {
 		// Assume first argument is the directory to use for parsing
-		if len(y2k.Timestamp) == 0 {
-			y2k.Timestamp = utils.GetDirTimestamps(arg, *digits, *noTrim)
+		if len(timestamp) == 0 {
+			timestamp = utils.GetDirTimestamps(arg, *digits, *noTrim)
 			continue
 		}
 
-		interpreter.FromCLIArg(arg, *digits)
+		y2k.FromCLIArg(arg)
 	}
 
-	if len(y2k.Timestamp) == 0 {
+	if len(timestamp) == 0 {
 		fmt.Println("Missing input dir!\n\nUsage: y2k <directory> [args]")
 		flag.PrintDefaults()
 		return
 	}
 
-	y2k.Parse(y2k.Timestamp)
+	y2k.Parse(timestamp)
 }

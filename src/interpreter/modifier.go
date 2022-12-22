@@ -1,17 +1,16 @@
 package interpreter
 
 import (
-	"fmt"
-	"strconv"
+	"reflect"
 	"strings"
 	"y2k/src/utils"
 )
 
 type Y2KMod struct {
-	VarID       uint8
-	ModSize     uint8
-	ModValue    string
-	ModFunction func(*Y2KVar, []string)
+	VarID   uint8
+	ModFn   uint8
+	ModSize uint8
+	value   string
 }
 
 // modMap holds an int->function mapping to match timestamp input
@@ -22,17 +21,18 @@ var modMap = map[uint8]func(*Y2KVar, []string){
 	3: MultiplyVar,
 	4: DivideVar,
 	5: AddVarToVar,
+	6: CopyFromVar,
 }
 
 // AddToVar directly modifies a variable by adding a second value to either its
-// NumberVal or StringVal property (depending on variable data type).
+// intVal or strVal property (depending on variable data type).
 func AddToVar(y2kVar *Y2KVar, values []string) {
 	switch y2kVar.Type {
 	case Y2KString:
-		y2kVar.StringVal += utils.StrArrToPrintable(values)
+		y2kVar.strVal += utils.StrArrToPrintable(values)
 		break
 	default:
-		y2kVar.NumberVal += utils.StrArrToInt(values)
+		y2kVar.intVal += utils.StrArrToInt(values)
 		break
 	}
 }
@@ -40,10 +40,21 @@ func AddToVar(y2kVar *Y2KVar, values []string) {
 func AddVarToVar(y2kVar *Y2KVar, values []string) {
 	switch y2kVar.Type {
 	case Y2KString:
-		y2kVar.StringVal += VarMap[uint8(utils.StrArrToInt(values))].StringVal
+		y2kVar.strVal += VarMap[uint8(utils.StrArrToInt(values))].strVal
 		break
 	default:
-		y2kVar.NumberVal += VarMap[uint8(utils.StrArrToInt(values))].NumberVal
+		y2kVar.intVal += VarMap[uint8(utils.StrArrToInt(values))].intVal
+		break
+	}
+}
+
+func CopyFromVar(y2kVar *Y2KVar, values []string) {
+	switch y2kVar.Type {
+	case Y2KString:
+		y2kVar.strVal = VarMap[uint8(utils.StrArrToInt(values))].strVal
+		break
+	default:
+		y2kVar.intVal = VarMap[uint8(utils.StrArrToInt(values))].intVal
 		break
 	}
 }
@@ -55,10 +66,10 @@ func SubtractFromVar(y2kVar *Y2KVar, values []string) {
 	intVal := utils.StrArrToInt(values)
 	switch y2kVar.Type {
 	case Y2KString:
-		y2kVar.StringVal = y2kVar.StringVal[0 : len(y2kVar.StringVal)-intVal]
+		y2kVar.strVal = y2kVar.strVal[0 : len(y2kVar.strVal)-intVal]
 		break
 	default:
-		y2kVar.NumberVal -= intVal
+		y2kVar.intVal -= intVal
 		break
 	}
 }
@@ -73,10 +84,10 @@ func MultiplyVar(y2kVar *Y2KVar, values []string) {
 
 	switch y2kVar.Type {
 	case Y2KString:
-		y2kVar.StringVal = strings.Repeat(y2kVar.StringVal, intVal)
+		y2kVar.strVal = strings.Repeat(y2kVar.strVal, intVal)
 		break
 	default:
-		y2kVar.NumberVal *= intVal
+		y2kVar.intVal *= intVal
 		break
 	}
 }
@@ -85,17 +96,17 @@ func MultiplyVar(y2kVar *Y2KVar, values []string) {
 // variable is numeric) or a string (if the variable is a string). For strings,
 // this results in a string with all instances of the specified string removed.
 // For all other variable types, this is regular division.
-// Str Example: "hello world!" / "o" -> "hell wrld!"
+// out Example: "hello world!" / "o" -> "hell wrld!"
 func DivideVar(y2kVar *Y2KVar, values []string) {
 	switch y2kVar.Type {
 	case Y2KString:
-		y2kVar.StringVal = strings.ReplaceAll(
-			y2kVar.StringVal,
+		y2kVar.strVal = strings.ReplaceAll(
+			y2kVar.strVal,
 			utils.StrArrToPrintable(values),
 			"")
 		break
 	default:
-		y2kVar.NumberVal /= utils.StrArrToInt(values)
+		y2kVar.intVal /= utils.StrArrToInt(values)
 		break
 	}
 }
@@ -107,40 +118,29 @@ func DivideVar(y2kVar *Y2KVar, values []string) {
 //
 // Once the mod size has been reached, we can pass the mod value to the desired
 // function and return the timestamp back to the original caller.
-func (y2k *Y2K) ParseModify(timestamp string, varMod Y2KMod) string {
-	command, _ := strconv.Atoi(timestamp[:y2k.Digits])
+func (y2k Y2K) ParseModify(timestamp string, val reflect.Value) string {
+	varMod := val.Interface().(Y2KMod)
+	input := timestamp[:y2k.Digits]
 
-	if varMod.VarID == 0 {
-		varMod.VarID = uint8(command)
-		y2k.DebugMsg(4, fmt.Sprintf("Variable ID: %d", varMod.VarID))
-	} else if varMod.ModFunction == nil {
-		varMod.ModFunction = modMap[uint8(command)]
-		y2k.DebugMsg(4, fmt.Sprintf("Function: %d", command))
-	} else if varMod.ModSize == 0 {
-		varMod.ModSize = uint8(command)
-		y2k.DebugMsg(4, fmt.Sprintf("Modifier Size: %d", varMod.ModSize))
-	} else {
-		strVal := strconv.Itoa(command)
-		varMod.ModValue += strVal
-		y2k.DebugMsg(4, fmt.Sprintf("(+ value: %s)", strVal))
+	varMod.value += input
 
-		if len(varMod.ModValue) >= int(varMod.ModSize) {
-			// Although we have the desired size of the modification, we don't
-			// know how the modification value needs to be interpreted. By
-			// converting the mod value to a slice of strings, we can pass off
-			// final interpretation of the value to the actual function that is
-			// performing the modification. For example, adding to a string
-			// should interpret inputs as a string ("h" + 9 == "hi"), but
-			// multiplying a string should interpret the inputs as a number.
-			// ("h" * 9 == "hhhhhhhhh").
-			targetVar := VarMap[varMod.VarID]
-			varMod.ModValue = varMod.ModValue[:varMod.ModSize]
-			varMod.ModFunction(
-				targetVar,
-				utils.SplitStrByN(varMod.ModValue, y2k.Digits))
+	if len(varMod.value) >= int(varMod.ModSize) {
+		// Although we have the desired size of the modification, we don't
+		// know how the modification value needs to be interpreted. By
+		// converting the mod value to a slice of strings, we can pass off
+		// final interpretation of the value to the actual function that is
+		// performing the modification. For example, adding to a string
+		// should interpret inputs as a string ("h" + 9 == "hi"), but
+		// multiplying a string should interpret the input as a number.
+		// ("h" * 9 == "hhhhhhhhh").
+		targetVar := VarMap[varMod.VarID]
+		varMod.value = varMod.value[:varMod.ModSize]
+		modMap[varMod.ModFn](
+			targetVar,
+			utils.SplitStrByN(varMod.value, y2k.Digits))
 
-			return timestamp
-		}
+		return timestamp
 	}
-	return y2k.ParseModify(timestamp[y2k.Digits:], varMod)
+
+	return y2k.ParseModify(timestamp[y2k.Digits:], reflect.ValueOf(varMod))
 }

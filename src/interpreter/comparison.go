@@ -16,9 +16,9 @@ var ComparisonMap = map[uint8]func(*Y2KVar, []string) bool{
 func EqualTo(y2kVar *Y2KVar, values []string) bool {
 	switch y2kVar.Type {
 	case Y2KString:
-		return y2kVar.StringVal == utils.StrArrToPrintable(values)
+		return y2kVar.strVal == utils.StrArrToPrintable(values)
 	case Y2KNumber:
-		return y2kVar.NumberVal == utils.StrArrToInt(values)
+		return y2kVar.intVal == utils.StrArrToInt(values)
 	}
 
 	return false
@@ -29,9 +29,9 @@ func EqualTo(y2kVar *Y2KVar, values []string) bool {
 func LessThan(y2kVar *Y2KVar, values []string) bool {
 	switch y2kVar.Type {
 	case Y2KString:
-		return len(y2kVar.StringVal) < utils.StrArrToInt(values)
+		return len(y2kVar.strVal) < utils.StrArrToInt(values)
 	case Y2KNumber:
-		return y2kVar.NumberVal < utils.StrArrToInt(values)
+		return y2kVar.intVal < utils.StrArrToInt(values)
 	}
 
 	return false
@@ -42,9 +42,9 @@ func LessThan(y2kVar *Y2KVar, values []string) bool {
 func GreaterThan(y2kVar *Y2KVar, values []string) bool {
 	switch y2kVar.Type {
 	case Y2KString:
-		return len(y2kVar.StringVal) > utils.StrArrToInt(values)
+		return len(y2kVar.strVal) > utils.StrArrToInt(values)
 	case Y2KNumber:
-		return y2kVar.NumberVal > utils.StrArrToInt(values)
+		return y2kVar.intVal > utils.StrArrToInt(values)
 	}
 
 	return false
