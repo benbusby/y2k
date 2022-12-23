@@ -11,7 +11,7 @@ func main() {
 	var timestamp string
 	digits := flag.Int(
 		"d",
-		2,
+		1,
 		"Set # of digits to parse at a time")
 	debug := flag.Bool(
 		"debug",

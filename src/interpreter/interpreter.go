@@ -24,6 +24,7 @@ const (
 	SET    Y2KCommand = 8
 	MODIFY Y2KCommand = 7
 	WHILE  Y2KCommand = 6
+	META   Y2KCommand = 5
 )
 
 var instMap map[Y2KCommand]Instruction
@@ -50,12 +51,17 @@ func (y2k Y2K) CreateStruct(
 
 		switch v.Field(i).Type().Kind() {
 		case reflect.Int:
+			fallthrough
 		case reflect.Int8:
 			v.Field(i).SetInt(int64(val))
 			break
 		case reflect.Uint:
+			fallthrough
 		case reflect.Uint8:
 			v.Field(i).SetUint(uint64(val))
+			break
+		case reflect.Bool:
+			v.Field(i).SetBool(val != 0)
 			break
 		default:
 			panic(fmt.Sprintf(
@@ -83,7 +89,7 @@ func (y2k Y2K) DebugMsg(prefixSpaces int, msg string) {
 func (y2k Y2K) OutputMsg(msg string) {
 	debugPrefix := ""
 	if y2k.Debug {
-		debugPrefix = "    OUTPUT: "
+		debugPrefix = " Output: "
 	}
 
 	fmt.Println(fmt.Sprintf("%s%s", debugPrefix, msg))
@@ -94,7 +100,7 @@ func (y2k Y2K) OutputMsg(msg string) {
 // For example, creation of a variable jumps from STANDBY to SET states,
 // and moves timestamp parsing to ParseVariable until that function passes
 // parsing back to Parse.
-func (y2k Y2K) Parse(timestamp string) {
+func (y2k Y2K) Parse(timestamp string) string {
 	// Extract a portion of the timestamp, with size determined by the
 	// Y2K.Digits field.
 	y2k.DebugMsg(0, fmt.Sprintf("Parse: [%s]%s",
@@ -112,10 +118,15 @@ func (y2k Y2K) Parse(timestamp string) {
 
 	if y2k.Digits > len(timestamp)-y2k.Digits {
 		// Finished parsing
-		return
+		return ""
 	}
 
-	y2k.Parse(timestamp[y2k.Digits:])
+	return y2k.Parse(timestamp[y2k.Digits:])
+}
+
+func (y2k Y2K) ParseMeta(timestamp string, val reflect.Value) string {
+	newY2K := val.Interface().(Y2K)
+	return newY2K.Parse(timestamp)
 }
 
 func init() {
@@ -124,5 +135,6 @@ func init() {
 		SET:    {reflect.ValueOf(&Y2KVar{}).Elem(), Y2K.ParseVariable},
 		MODIFY: {reflect.ValueOf(&Y2KMod{}).Elem(), Y2K.ParseModify},
 		WHILE:  {reflect.ValueOf(&Y2KWhile{}).Elem(), Y2K.ParseWhile},
+		META:   {reflect.ValueOf(&Y2K{}).Elem(), Y2K.ParseMeta},
 	}
 }

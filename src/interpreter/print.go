@@ -49,7 +49,6 @@ func (y2k Y2K) ParsePrint(timestamp string, val reflect.Value) string {
 	// Check if the string terminator (whitespace * N-digits) has been added,
 	// and if so, strip out the terminator and print the string.
 	if strings.HasSuffix(y2kPrint.out, utils.StrTerm) {
-		y2k.DebugMsg(4, "(End Print)")
 		y2k.OutputMsg(y2kPrint.out[0 : len(y2kPrint.out)-len(utils.StrTerm)])
 		return timestamp
 	}
