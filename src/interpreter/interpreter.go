@@ -20,11 +20,11 @@ type Instruction struct {
 type Y2KCommand uint8
 
 const (
-	PRINT  Y2KCommand = 9
-	SET    Y2KCommand = 8
-	MODIFY Y2KCommand = 7
-	WHILE  Y2KCommand = 6
-	META   Y2KCommand = 5
+	PRINT     Y2KCommand = 9
+	SET       Y2KCommand = 8
+	MODIFY    Y2KCommand = 7
+	CONDITION Y2KCommand = 6
+	META      Y2KCommand = 5
 )
 
 var instMap map[Y2KCommand]Instruction
@@ -131,10 +131,10 @@ func (y2k Y2K) ParseMeta(timestamp string, val reflect.Value) string {
 
 func init() {
 	instMap = map[Y2KCommand]Instruction{
-		PRINT:  {reflect.ValueOf(&Y2KPrint{}).Elem(), Y2K.ParsePrint},
-		SET:    {reflect.ValueOf(&Y2KVar{}).Elem(), Y2K.ParseVariable},
-		MODIFY: {reflect.ValueOf(&Y2KMod{}).Elem(), Y2K.ParseModify},
-		WHILE:  {reflect.ValueOf(&Y2KWhile{}).Elem(), Y2K.ParseWhile},
-		META:   {reflect.ValueOf(&Y2K{}).Elem(), Y2K.ParseMeta},
+		PRINT:     {reflect.ValueOf(&Y2KPrint{}).Elem(), Y2K.ParsePrint},
+		SET:       {reflect.ValueOf(&Y2KVar{}).Elem(), Y2K.ParseVariable},
+		MODIFY:    {reflect.ValueOf(&Y2KMod{}).Elem(), Y2K.ParseModify},
+		CONDITION: {reflect.ValueOf(&Y2KCond{}).Elem(), Y2K.ParseCondition},
+		META:      {reflect.ValueOf(&Y2K{}).Elem(), Y2K.ParseMeta},
 	}
 }
