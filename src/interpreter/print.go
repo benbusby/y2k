@@ -33,7 +33,7 @@ func (y2k Y2K) ParsePrint(timestamp string, val reflect.Value) string {
 	// back to the caller.
 	if y2kPrint.Type == Y2KPrintVar {
 		y2k.DebugMsg(4, fmt.Sprintf("(Print Var: %d)", input))
-		variable := VarMap[uint8(input)]
+		variable := GetVar(uint8(input))
 		y2k.OutputMsg(variable.GetValue())
 
 		return timestamp

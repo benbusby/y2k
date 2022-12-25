@@ -40,10 +40,10 @@ func AddToVar(y2kVar *Y2KVar, values []string) {
 func AddVarToVar(y2kVar *Y2KVar, values []string) {
 	switch y2kVar.Type {
 	case Y2KString:
-		y2kVar.strVal += VarMap[uint8(utils.StrArrToInt(values))].strVal
+		y2kVar.strVal += GetVar(uint8(utils.StrArrToInt(values))).strVal
 		break
 	default:
-		y2kVar.intVal += VarMap[uint8(utils.StrArrToInt(values))].intVal
+		y2kVar.intVal += GetVar(uint8(utils.StrArrToInt(values))).intVal
 		break
 	}
 }
@@ -51,10 +51,10 @@ func AddVarToVar(y2kVar *Y2KVar, values []string) {
 func CopyFromVar(y2kVar *Y2KVar, values []string) {
 	switch y2kVar.Type {
 	case Y2KString:
-		y2kVar.strVal = VarMap[uint8(utils.StrArrToInt(values))].strVal
+		y2kVar.strVal = GetVar(uint8(utils.StrArrToInt(values))).strVal
 		break
 	default:
-		y2kVar.intVal = VarMap[uint8(utils.StrArrToInt(values))].intVal
+		y2kVar.intVal = GetVar(uint8(utils.StrArrToInt(values))).intVal
 		break
 	}
 }
@@ -120,6 +120,7 @@ func DivideVar(y2kVar *Y2KVar, values []string) {
 // function and return the timestamp back to the original caller.
 func (y2k Y2K) ParseModify(timestamp string, val reflect.Value) string {
 	varMod := val.Interface().(Y2KMod)
+
 	input := timestamp[:y2k.Digits]
 
 	varMod.value += input
@@ -133,7 +134,7 @@ func (y2k Y2K) ParseModify(timestamp string, val reflect.Value) string {
 		// should interpret inputs as a string ("h" + 9 == "hi"), but
 		// multiplying a string should interpret the input as a number.
 		// ("h" * 9 == "hhhhhhhhh").
-		targetVar := VarMap[varMod.VarID]
+		targetVar := GetVar(varMod.VarID)
 		varMod.value = varMod.value[:varMod.ModSize]
 		modMap[varMod.ModFn](
 			targetVar,

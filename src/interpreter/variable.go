@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -44,39 +45,22 @@ func (y2kVar *Y2KVar) GetValue() string {
 	return ""
 }
 
-// ParseVariable recursively builds a new Y2KVar to insert into the global
-// variable map.
-// The variable creation process follows a specific order:
-//
-// start creation -> set ID -> set type -> set size -> read values
-//
-// So to create a numeric variable with the value 100 and an ID of 1, the
-// chain of values would need to be:
-//
-// 3 1 2 3 1 0 0
-func (y2k Y2K) ParseVariable(timestamp string, val reflect.Value) string {
-	newVar := val.Interface().(Y2KVar)
-	input := timestamp[:y2k.Digits]
-
-	// Regardless of data type, var values are created as a string first, in
-	// order to sequentially create the variable value across multiple passes
-	// of the parser (i.e. 100 has to be split between multiple passes, so "1"
-	// is added first, then "0", then the last "0", then converted to an
-	// integer).
-	newVar.strVal += input
-
-	if len(newVar.strVal) >= int(newVar.Size) {
-		numericVal, _ := strconv.Atoi(newVar.strVal[:newVar.Size])
-		newVar.intVal = numericVal
-
-		// Insert finished variable into variable map
-		VarMap[newVar.ID] = &newVar
-
-		// Return handling of the parser back to Parse
-		return timestamp
+// GetVar retrieves a variable from the existing ID->var map,
+// or returns an empty version of the variable struct if the
+// request var id has not been set.
+func GetVar(id uint8) *Y2KVar {
+	if variable, ok := VarMap[id]; ok {
+		return variable
 	}
 
-	return y2k.ParseVariable(timestamp[y2k.Digits:], reflect.ValueOf(newVar))
+	// Alert the user if the variable they're attempting to use has not been set yet.
+	warnMsg := fmt.Sprintf("WARNING -- Variable [%d] does not exist!", id)
+	if id == 9 {
+		warnMsg += "\n(probably a command line argument...)"
+	}
+
+	fmt.Println(warnMsg)
+	return &Y2KVar{}
 }
 
 // FromCLIArg takes a command line argument and turns it into a variable for the
@@ -111,4 +95,39 @@ func (y2k Y2K) FromCLIArg(input string) {
 		intVal: utils.StrToInt(input),
 		Type:   argType,
 	}
+}
+
+// ParseVariable recursively builds a new Y2KVar to insert into the global
+// variable map.
+// The variable creation process follows a specific order:
+//
+// start creation -> set ID -> set type -> set size -> read values
+//
+// So to create a numeric variable with the value 100 and an ID of 1, the
+// chain of values would need to be:
+//
+// 3 1 2 3 1 0 0
+func (y2k Y2K) ParseVariable(timestamp string, val reflect.Value) string {
+	newVar := val.Interface().(Y2KVar)
+	input := timestamp[:y2k.Digits]
+
+	// Regardless of data type, var values are created as a string first, in
+	// order to sequentially create the variable value across multiple passes
+	// of the parser (i.e. 100 has to be split between multiple passes, so "1"
+	// is added first, then "0", then the last "0", then converted to an
+	// integer).
+	newVar.strVal += input
+
+	if len(newVar.strVal) >= int(newVar.Size) {
+		numericVal, _ := strconv.Atoi(newVar.strVal[:newVar.Size])
+		newVar.intVal = numericVal
+
+		// Insert finished variable into variable map
+		VarMap[newVar.ID] = &newVar
+
+		// Return handling of the parser back to Parse
+		return timestamp
+	}
+
+	return y2k.ParseVariable(timestamp[y2k.Digits:], reflect.ValueOf(newVar))
 }

@@ -15,11 +15,11 @@ var ComparisonMap = map[uint8]func(*Y2KVar, []string) bool{
 }
 
 type Y2KCond struct {
-	VarID    uint8
-	CompFn   uint8
-	Loop     bool
-	CompSize uint8
-	value    string
+	VarID       uint8
+	CompFn      uint8
+	Loop        bool
+	CompValSize uint8
+	value       string
 }
 
 // ParseCondition compares a variable against a raw value and parses a segment of
@@ -31,8 +31,8 @@ func (y2k Y2K) ParseCondition(timestamp string, val reflect.Value) string {
 	input := timestamp[:y2k.Digits]
 	y2kCond.value += input
 
-	if len(y2kCond.value) >= int(y2kCond.CompSize) {
-		targetVar := VarMap[y2kCond.VarID]
+	if len(y2kCond.value) >= int(y2kCond.CompValSize) {
+		targetVar := GetVar(y2kCond.VarID)
 
 		// CompFn functions need the raw comparison value passed to
 		// them, because they treat values differently depending on the
@@ -45,7 +45,7 @@ func (y2k Y2K) ParseCondition(timestamp string, val reflect.Value) string {
 		// subsequent command. Parsing it as a string and then splitting it,
 		// however, creates ["10", "0"].
 		splitComp := utils.SplitStrByN(
-			y2kCond.value[:y2kCond.CompSize],
+			y2kCond.value[:y2kCond.CompValSize],
 			y2k.Digits)
 
 		// Extract the index of the loop terminator and the subset of the
