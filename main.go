@@ -17,11 +17,6 @@ func main() {
 		"debug",
 		false,
 		"Enable to view interpreter steps in console")
-	noTrim := flag.Bool(
-		"no-trim",
-		false,
-		"Disables trimming of the first N digits "+
-			"of file timestamps after the first file")
 	flag.Parse()
 
 	y2k := &interpreter.Y2K{Digits: *digits, Debug: *debug}
@@ -29,7 +24,7 @@ func main() {
 	for _, arg := range flag.Args() {
 		// Assume first argument is the directory to use for parsing
 		if len(timestamp) == 0 {
-			timestamp = utils.GetDirTimestamps(arg, *digits, *noTrim)
+			timestamp = utils.GetDirTimestamps(arg, *digits)
 			continue
 		}
 

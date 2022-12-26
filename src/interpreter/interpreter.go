@@ -25,6 +25,7 @@ const (
 	MODIFY    Y2KCommand = 7
 	CONDITION Y2KCommand = 6
 	META      Y2KCommand = 5
+	BREAK     Y2KCommand = 4
 )
 
 var instMap map[Y2KCommand]Instruction
@@ -108,7 +109,10 @@ func (y2k Y2K) Parse(timestamp string) string {
 		timestamp[y2k.Digits:]))
 	command := Y2KCommand(utils.StrToInt(timestamp[:y2k.Digits]))
 
-	if instruction, ok := instMap[command]; ok {
+	if command == BREAK {
+		// Return early if a break command is received
+		return utils.BreakCommand
+	} else if instruction, ok := instMap[command]; ok {
 		var y2kStruct reflect.Value
 		y2kStruct, timestamp = y2k.CreateStruct(
 			timestamp[y2k.Digits:],

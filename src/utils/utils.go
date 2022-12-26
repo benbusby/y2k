@@ -15,7 +15,9 @@ var Printable = " abcdefghijklmnopqrstuvwxyz" +
 	"1234567890" +
 	"!@#$%^&*()+-<>.,"
 var StrTerm = "  "
-var FnTerm = "1999"
+var LoopTerm = "1999"
+var CondTerm = "2000"
+var BreakCommand = "break"
 var DebugDivider = "=============================="
 
 func GetFileModTime(path string, zeroPad bool) string {
@@ -30,6 +32,14 @@ func GetFileModTime(path string, zeroPad bool) string {
 	}
 
 	return "00"
+}
+
+func GetCondTerm(loop bool) string {
+	if loop {
+		return LoopTerm
+	}
+
+	return CondTerm
 }
 
 func StrToInt(input string) int {
@@ -71,7 +81,7 @@ func SplitStrByN(input string, n int) []string {
 	return output
 }
 
-func GetDirTimestamps(dir string, digits int, noTrim bool) string {
+func GetDirTimestamps(dir string, digits int) string {
 	var fullTimestamp = ""
 	files, err := os.ReadDir(dir)
 
@@ -98,7 +108,7 @@ func GetDirTimestamps(dir string, digits int, noTrim bool) string {
 		// Append timestamp to slice
 		fullPath := filepath.Join(directoryPath, file.Name())
 		timestamp := GetFileModTime(fullPath, digits > 1)
-		if len(fullTimestamp) != 0 && !noTrim {
+		if len(fullTimestamp) != 0 {
 			// Snip off the leading digit for all timestamps except
 			// the first one. We do this to avoid issues with commands
 			// spanning across multiple files, where the next desired
