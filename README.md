@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://benbusby.com/assets/images/y2k.png">
+  <img src="https://benbusby.com/assets/images/y2k.svg">
 
   [![MPL License](https://img.shields.io/github/license/benbusby/y2k)](LICENSE)
 </div>
@@ -19,6 +19,7 @@ Contents
     5. [Fibonacci II: N-terms](#fibonacci-ii)
     6. [Fizz Buzz](#fizz-buzz)
 6. [FAQ](#faq)
+7. [Contributing](#contributing)
 
 ## Install
 
@@ -417,12 +418,12 @@ Timestamp(s):
 - `X09219227.151272511`
 
 For this first Fibonacci Sequence program, we're printing all values that are
-less than 2000. We're also going to do something a bit hacky in order to
-fit this solution into only 2 file timestamps. We're going to create two
-variables that will hold two values of the sequence at a time (starting with 0
-and 1), and add them to each other until the lower of the two values is above 2000.
-This works since we know that an even number of terms is needed to reach `1597`,
-the highest Fibonacci number before `2000`.
+less than 2000. We're going to do something a little hacky in order to fit this
+solution into only 2 file timestamps. First we'll create two variables that
+will hold two values of the sequence at a time (starting with 0 and 1), then
+add them to each other until the lower of the two values is above 2000. This
+works since we know that an even number of terms is needed to reach `1597`, the
+highest Fibonacci number that is less than `2000`.
 
 Like the "Hello World!" example, the timestamps below have been broken up to
 make them easier to read. I've also grouped some commands into chunks of digits
@@ -667,13 +668,13 @@ Problem"](https://en.wikipedia.org/wiki/Year_2000_problem), hence the name.
 
 - **What does 0-byte actually mean? How can a program be 0 bytes?**
 
-Since file content is not actually read by the interpreter, each `.y2k` file
-can be completely empty (0 bytes) without affecting how each program is
-interpreted. And since every file has to have a timestamp associated with it
-anyway, there aren't any extra bytes needed to achieve this functionality.
-Technically though, there's no such thing as a 0 byte file -- the metadata for
-that file does have to be stored somewhere. But for code golfing purposes, it
-should be counted as 0 bytes.
+Since the interpreter only reads file *timestamps* and not file *content*, each
+`.y2k` file can be completely empty (0 bytes) without affecting how each
+program is interpreted. And since every file has to have a timestamp associated
+with it anyway, there aren't any extra bytes needed to achieve this
+functionality. Technically though, there's no such thing as a 0 byte file --
+the metadata for that file does have to be stored somewhere. But for code
+golfing purposes, it should be counted as 0 bytes.
 
 - **Why are there two ways to copy a variable's value to a new variable?**
 
@@ -687,18 +688,40 @@ that variable.
 For example:
 
 ```
-# Loops infinitely, since the loop is initialized
-# with a previous reference to Var 1
+: Loops infinitely, since the loop is initialized
+: with a previous reference to Var 1
 61213100 : While Var 1 < 100
     74111 : Var 4 += 1
-    81314 : Set Var 1 to Var 4
+    81314 : Overwrite Var 1 with Var 4
 
-# Loops as expected
+: Loops as expected
 61213100 : While var 1 < 100
     74111 : Var 4 += 1
     71514 : Copy var 4 value to var 1
 ```
 
+- **How would I show proof of my solution in a code golf submission?**
+
+I'm not sure the best way to do this yet. My guess would be something
+like:
+
+```shell
+$ ls *.y2k -lo --time-style="+%s%9N"
+-rw-r--r-- 1 benbusby 0 502090134051212150 1.y2k
+-rw-r--r-- 1 benbusby 0 104915181204630000 2.y2k
+```
+
 _____
 
 ¹ Technically Sept. 2001, but close enough...
+
+## Contributing
+
+I would appreciate any input/contributions from the community. Feel free to
+browse the issues tab to see if there's anything that you're interested in
+working on, or add a new example program.
+
+The main thing that would help is trying to solve current or past code-golfing
+problems from https://codegolf.stackexchange.com. If there's a limitation in
+Y2K (there are definitely a ton) that prevents you from solving the problem,
+open an issue so that it can be addressed!
