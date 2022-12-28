@@ -15,8 +15,9 @@ var VarMap = map[uint8]*Y2KVar{}
 type Y2KVarType uint8
 
 const (
-	Y2KString Y2KVarType = 1
-	Y2KNumber Y2KVarType = 2
+	Y2KString  Y2KVarType = 1
+	Y2KNumber  Y2KVarType = 2
+	Y2KVarCopy Y2KVarType = 3
 )
 
 // Y2KVar is a struct for all variables created by Y2K programs. These contain
@@ -111,16 +112,31 @@ func (y2k Y2K) ParseVariable(timestamp string, val reflect.Value) string {
 	newVar := val.Interface().(Y2KVar)
 	input := timestamp[:y2k.Digits]
 
+	y2k.DebugMsg(fmt.Sprintf("ParseVariable: [%s]%s",
+		input,
+		timestamp[y2k.Digits:]))
+
 	// Regardless of data type, var values are created as a string first, in
 	// order to sequentially create the variable value across multiple passes
 	// of the parser (i.e. 100 has to be split between multiple passes, so "1"
 	// is added first, then "0", then the last "0", then converted to an
 	// integer).
+	if newVar.Type == Y2KString {
+		input = string(utils.Printable[utils.StrToInt(input)])
+	}
 	newVar.strVal += input
 
 	if len(newVar.strVal) >= int(newVar.Size) {
-		numericVal, _ := strconv.Atoi(newVar.strVal[:newVar.Size])
-		newVar.intVal = numericVal
+		if newVar.Type == Y2KVarCopy {
+			copyVar := GetVar(uint8(utils.StrToInt(newVar.strVal)))
+			newVar.Type = copyVar.Type
+			newVar.Size = copyVar.Size
+			newVar.intVal = copyVar.intVal
+			newVar.strVal = copyVar.strVal
+		} else {
+			// Init int value of variable
+			newVar.intVal = utils.StrToInt(newVar.strVal[:newVar.Size])
+		}
 
 		// Insert finished variable into variable map
 		VarMap[newVar.ID] = &newVar
