@@ -17,7 +17,7 @@ var Printable = " abcdefghijklmnopqrstuvwxyz" +
 var StrTerm = "  "
 var LoopTerm = "1999"
 var CondTerm = "2000"
-var BreakCommand = "break"
+var ContinueCmd = "continue"
 var DebugDivider = "=============================="
 
 func GetFileModTime(path string, zeroPad bool) string {

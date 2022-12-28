@@ -3,7 +3,6 @@ package interpreter
 import (
 	"fmt"
 	"reflect"
-	"strings"
 	"y2k/src/utils"
 )
 
@@ -25,7 +24,7 @@ const (
 	MODIFY    Y2KCommand = 7
 	CONDITION Y2KCommand = 6
 	META      Y2KCommand = 5
-	BREAK     Y2KCommand = 4
+	CONTINUE  Y2KCommand = 4
 )
 
 var instMap map[Y2KCommand]Instruction
@@ -49,6 +48,12 @@ func (y2k Y2K) CreateStruct(
 
 		idx := y2k.Digits * modFields
 		val := utils.StrToInt(timestamp[idx : idx+y2k.Digits])
+
+		y2k.DebugMsg(fmt.Sprintf("%s.%s: [%s]%s",
+			v.Type().Name(),
+			v.Type().Field(i).Name,
+			timestamp[idx:idx+y2k.Digits],
+			timestamp[idx+y2k.Digits:]))
 
 		switch v.Field(i).Type().Kind() {
 		case reflect.Int:
@@ -81,16 +86,16 @@ func (y2k Y2K) CreateStruct(
 // DebugMsg is used for printing useful info about what operations the
 // interpreter is performing, and inspecting the values from the timestamps
 // that are being interpreted.
-func (y2k Y2K) DebugMsg(prefixSpaces int, msg string) {
+func (y2k Y2K) DebugMsg(msg string) {
 	if y2k.Debug {
-		fmt.Println(strings.Repeat(" ", prefixSpaces), msg)
+		fmt.Println(msg)
 	}
 }
 
 func (y2k Y2K) OutputMsg(msg string) {
 	debugPrefix := ""
 	if y2k.Debug {
-		debugPrefix = " Output: "
+		debugPrefix = "----- Output: "
 	}
 
 	fmt.Println(fmt.Sprintf("%s%s", debugPrefix, msg))
@@ -104,14 +109,14 @@ func (y2k Y2K) OutputMsg(msg string) {
 func (y2k Y2K) Parse(timestamp string) string {
 	// Extract a portion of the timestamp, with size determined by the
 	// Y2K.Digits field.
-	y2k.DebugMsg(0, fmt.Sprintf("Parse: [%s]%s",
+	y2k.DebugMsg(fmt.Sprintf("Parse: [%s]%s",
 		timestamp[:y2k.Digits],
 		timestamp[y2k.Digits:]))
 	command := Y2KCommand(utils.StrToInt(timestamp[:y2k.Digits]))
 
-	if command == BREAK {
-		// Return early if a break command is received
-		return utils.BreakCommand
+	if command == CONTINUE {
+		// Return early if a "continue" command is received
+		return utils.ContinueCmd
 	} else if instruction, ok := instMap[command]; ok {
 		var y2kStruct reflect.Value
 		y2kStruct, timestamp = y2k.CreateStruct(

@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"y2k/src/utils"
@@ -122,6 +123,9 @@ func (y2k Y2K) ParseModify(timestamp string, val reflect.Value) string {
 	varMod := val.Interface().(Y2KMod)
 
 	input := timestamp[:y2k.Digits]
+	y2k.DebugMsg(fmt.Sprintf("ParseModify: [%s]%s",
+		input,
+		timestamp[y2k.Digits:]))
 
 	varMod.value += input
 

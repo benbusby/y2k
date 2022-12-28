@@ -23,16 +23,16 @@ type Y2KPrint struct {
 func (y2k Y2K) ParsePrint(timestamp string, val reflect.Value) string {
 	y2kPrint := val.Interface().(Y2KPrint)
 
-	y2k.DebugMsg(0, fmt.Sprintf("ParsePrint: [%s]%s",
-		timestamp[:y2k.Digits],
-		timestamp[y2k.Digits:]))
 	input := utils.StrToInt(timestamp[:y2k.Digits])
+	y2k.DebugMsg(fmt.Sprintf("ParsePrint: [%d]%s",
+		input,
+		timestamp[y2k.Digits:]))
 
 	// If we're printing a variable, the next input will be the variable ID.
 	// We can use that to print the variable value and return the timestamp
 	// back to the caller.
 	if y2kPrint.Type == Y2KPrintVar {
-		y2k.DebugMsg(4, fmt.Sprintf("(Print Var: %d)", input))
+		y2k.DebugMsg(fmt.Sprintf("Print Var[%d]", input))
 		variable := GetVar(uint8(input))
 		y2k.OutputMsg(variable.GetValue())
 

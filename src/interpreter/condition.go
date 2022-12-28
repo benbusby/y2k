@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"y2k/src/utils"
@@ -36,7 +37,7 @@ func (y2kComp Y2KCond) RunCond(
 	splitComp []string,
 ) bool {
 	var result string
-	
+
 	if y2kComp.Loop {
 		for ComparisonMap[y2kComp.CompFn](target, splitComp) {
 			result = y2k.Parse(timestamp)
@@ -47,7 +48,7 @@ func (y2kComp Y2KCond) RunCond(
 		}
 	}
 
-	if result == utils.BreakCommand {
+	if result == utils.ContinueCmd {
 		// Break out of timestamp if commanded
 		return true
 	}
@@ -115,6 +116,10 @@ func (y2k Y2K) ParseCondition(timestamp string, val reflect.Value) string {
 	y2kCond := val.Interface().(Y2KCond)
 
 	input := timestamp[:y2k.Digits]
+	y2k.DebugMsg(fmt.Sprintf("ParseCondition: [%s]%s",
+		input,
+		timestamp[y2k.Digits:]))
+
 	y2kCond.value += input
 
 	if len(y2kCond.value) >= int(y2kCond.CompValSize) {
@@ -150,12 +155,12 @@ func (y2k Y2K) ParseCondition(timestamp string, val reflect.Value) string {
 		// Determine the segment of the timestamp that will be parsed on
 		// each iteration of the while loop.
 		whileTimestamp := timestamp[y2k.Digits:timestampFnTerm]
-		y2k.DebugMsg(0, utils.DebugDivider)
+		y2k.DebugMsg(utils.DebugDivider)
 
 		stop := y2kCond.RunCond(y2k, whileTimestamp, targetVar, splitComp)
 
 		// Conditions can optionally break out of the timestamp using the
-		// BREAK command (see interpreter.go). In this instance, the next
+		// CONTINUE command (see interpreter.go). In this instance, the next
 		// timestamp passed back to the parser should be empty.
 		if stop {
 			return ""
