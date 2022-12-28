@@ -6,6 +6,13 @@
 
 ___
 
+<table>
+    <tr>
+        <td><a href="https://sr.ht/~benbusby/y2k">SourceHut</a></td>
+        <td><a href="https://github.com/benbusby/y2k">GitHub</a></td>
+    </tr>
+</table>
+
 Contents
 1. [Install](#install)
 2. [Features](#features)
@@ -23,11 +30,21 @@ Contents
 
 ## Install
 
-### Windows, macOS, Linux
+### Binary (Windows, macOS, Linux)
 Download from [the latest release](https://github.com/benbusby/y2k/releases)
 
 ### Go
 `go install github.com/benbusby/y2k@latest`
+
+### From Source
+
+1. Install Go: https://go.dev/doc/install
+2. Clone and build project:
+```
+git clone https://github.com/benbusby/y2k.git
+cd y2k
+go build
+```
 
 ## Features
 

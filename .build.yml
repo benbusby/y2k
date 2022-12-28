@@ -1,0 +1,9 @@
+image: archlinux
+packages:
+  - go
+sources:
+  - https://git.sr.ht/~benbusby/y2k
+tasks:
+  - test: |
+      cd y2k
+      ./test.sh
