@@ -2,6 +2,8 @@
   <img src="https://benbusby.com/assets/images/y2k.svg">
 
   [![MPL License](https://img.shields.io/github/license/benbusby/y2k)](LICENSE)
+  [![builds.sr.ht status](https://builds.sr.ht/~benbusby/y2k.svg)](https://builds.sr.ht/~benbusby/y2k?)
+  [![Go Report Card](https://goreportcard.com/badge/github.com/benbusby/y2k)](https://goreportcard.com/report/github.com/benbusby/y2k)
 </div>
 
 ___
