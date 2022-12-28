@@ -1,4 +1,10 @@
-# Y2K
+<div align="center">
+  <img src="https://benbusby.com/assets/images/y2k.png">
+
+  [![MPL License](https://img.shields.io/github/license/benbusby/y2k)](LICENSE)
+</div>
+
+___
 
 Contents
 1. [Install](#install)
@@ -411,7 +417,7 @@ Timestamp(s):
 - `X09219227.151272511`
 
 For this first Fibonacci Sequence program, we're printing all values that are
-less than 2000. To do so, we're going to do something a bit hacky in order to
+less than 2000. We're also going to do something a bit hacky in order to
 fit this solution into only 2 file timestamps. We're going to create two
 variables that will hold two values of the sequence at a time (starting with 0
 and 1), and add them to each other until the lower of the two values is above 2000.
@@ -565,26 +571,28 @@ Timestamp(s):
 - `X40139294.200061401`
 - `X59284200.009210000`
 
-By far the most complex of the current examples, the Fizz Buzz program highlights a few
-features that haven't been covered yet, namely terminating and "continue"-ing conditionals.
-We also have to tell the interpreter to switch between 1- and 2-digit parsing in order to create
-our words "fizz" and "buzz" while maintaining the efficiency of 1-digit parsing.
+The Fizz Buzz program highlights a few features that haven't been covered yet,
+namely terminating and "continue"-ing conditionals. We also have to tell the
+interpreter to switch between 1- and 2-digit parsing in order to create our
+words "fizz" and "buzz" while maintaining the efficiency of 1-digit parsing.
 
-The value `2000`, when used with a non-looped conditional, tells the interpreter where the "body" of
-the statement needs to end. This is an arbitrary value (although fitting given the name of the language)
-that is used multiple times in this program to tell the interpreter where an "if" statement ends. There's
-also the new parse-command `4` (aka `CONTINUE`), which returns an empty string to the parent parser function
-instead of the remainder of the timestamp. Since this is being used inside a "while" loop, this returns the
-interpreter back to the beginning of the loop to reevaluate instead of continuing to the next part of the
-timestamp.
+The value `2000`, when used with a non-looped conditional, tells the
+interpreter where the "body" of the statement needs to end. This is an
+arbitrary value (although fitting given the name of the language) that is used
+multiple times in this program to tell the interpreter where an "if" statement
+ends. There's also the new parse-command `4` (aka `CONTINUE`), which returns an
+empty string to the parent parser function instead of the remainder of the
+timestamp. Since this is being used inside a "while" loop, this returns the
+interpreter back to the beginning of the loop to reevaluate instead of
+continuing to the next part of the timestamp.
 
 ```
 502 : Change interpreter to 2-digit parsing mode
 
-0809010406092626 : Set var 9 to "fizz"
-0808010402212626 : Set var 8 to "buzz"
+08 09 01 04 06 09 26 26 : Set var 9 to "fizz"
+08 08 01 04 02 21 26 26 : Set var 8 to "buzz"
 
-050001 : Change interpreter to 1-digit parsing mode
+05 00 01 : Change interpreter back to 1-digit parsing mode
 
 87319 : Copy var 9 to var 7 (var 7 = "fizz")
 77518 : Append var 8 to var 7 (var 7 += "buzz")
@@ -594,17 +602,17 @@ timestamp.
 61213100 : While var 1 < 100
     71111 : Var 1 += 1
     6140215 : If var 1 % 15 == 0
-      927 : Print var 7 ("fizzbuzz")
-      4 : Continue
-      2000 : end-if
+        927 : Print var 7 ("fizzbuzz")
+        4 : Continue
+    2000 : end-if
     614013 : If var 1 % 3 == 0
-      929 : Print var 9 ("fizz")
-      4 : Continue
-      2000 : end-if
+        929 : Print var 9 ("fizz")
+        4 : Continue
+    2000 : end-if
     614015 : If var 1 % 5 == 0
-      928 : Print var 8 ("buzz")
-      4 : Continue
-      2000 : end-if
+        928 : Print var 8 ("buzz")
+        4 : Continue
+    2000 : end-if
     921 : Print var 1
 ```
 
