@@ -28,6 +28,11 @@ Contents
     5. [Fibonacci II: N-terms](#fibonacci-ii)
     6. [Fizz Buzz](#fizz-buzz)
 6. [FAQ](#faq)
+    1. [Why the pre-2000 timestamp limitation? Why the name Y2K?](#faq)
+    2. [What does 0-byte actually mean? How can a program be 0 bytes?](#faq)
+    3. [Why are there two ways to copy a variable's value to a new variable?](#faq)
+    4. [How would I show proof of my solution in a code golf submission?](#faq)
+    5. [Why doesn't Y2K have X feature?](#faq)
 7. [Contributing](#contributing)
 
 ## Install
@@ -126,6 +131,8 @@ and the 0s needed to be at the beginning of the next file timestamp, this would
 only be possible if the timestamp was prefixed with a non-zero digit (otherwise
 leading 0s are ignored).
 
+### Step 1 - Parse Command
+
 After the timestamps have been concatenated into one long string, this string
 is passed into the top level `interpreter.Parse()` function for initial
 parsing. `Parse` will check the first digit of the timestamp to determine
@@ -176,6 +183,8 @@ which action to take:
   </tr>
 </table>
 
+### Step 2 - Parse Struct Fields
+
 Each action is associated with its own struct, which holds values that are
 pertinent to the action it needs to perform, and its own parsing function.
 The next N-digits after the command digit are used to populate the struct's
@@ -185,7 +194,7 @@ public fields before using that struct to perform an action:
   <tr>
     <th>Struct (Command ID)</th>
     <th># Public Fields</th>
-    <th>Field Descriptions</th>
+    <th>Fields (in order)</th>
     <th>Example</th>
   </tr>
   <tr>
@@ -283,6 +292,8 @@ For example, to create a variable, your timestamp would need to start with
 `8` to initiate variable creation, and then the following 3 digits would be
 used to set the variable's `ID/name`, `Type`, and `Size` attributes.
 
+### Step 3 - Parse Value(s)
+
 Once the struct's public fields have been set, it's passed over to its parser
 function to actually perform the action. Continuing from the previous example
 of creating a variable, this would mean A) populating the variable's value
@@ -307,6 +318,10 @@ to have the following values:
 Now that the variable has been set, you can reference it in other parts of
 your program using its "1" ID.
 
+The interpreter then returns to "Step 1".
+
+___
+
 In the following section, I've outlined some small example programs that
 should help with understanding the language's current functionality.
 
@@ -320,7 +335,7 @@ how each example works.
 `examples/set-print-var`
 
 Timestamp(s):
-- `812310092.100000000`
+- `812310092.100000000` :: `1995-09-28 11:41:32.100000000`
 
 This expands on the example given in the "How It Works" section (setting
 variable "1" to the value 100) by also printing the variable out to the
@@ -336,7 +351,7 @@ console after setting it.
 | | | | |  /  Insert 0
 | | | | | |  /  Begin print command
 | | | | | | |  /  Set print type to var
-| | | | | | | |  /  Print var "1"
+| | | | | | | |  /  Print Var 1
 | | | | | | | | |  /
 8 1 2 3 1 0 0 9 2 1
 ```
@@ -347,7 +362,7 @@ Output: `100`
 `examples/modify-print-var`
 
 Timestamp(s):
-- `812310071.235009210`
+- `812310071.235009210` :: `1995-09-28 11:41:11.235009210`
 
 This example takes an additional step after setting var "1" to 100 by then
 subtracting 500 from that variable, and then printing var "1".
@@ -361,7 +376,7 @@ subtracting 500 from that variable, and then printing var "1".
 | | | |  /  Insert 0
 | | | | |  /  Insert 0
 | | | | | |  /  Begin modify command
-| | | | | | |  /  Target var "1" for modification
+| | | | | | |  /  Target Var 1 for modification
 | | | | | | | |  /  Set modifier function to -=
 | | | | | | | | |  /  Set modifier size to 3 digits
 | | | | | | | | | |  /  Insert 5
@@ -369,7 +384,7 @@ subtracting 500 from that variable, and then printing var "1".
 | | | | | | | | | | | |  /   Insert 0
 | | | | | | | | | | | | |  /   Begin print command
 | | | | | | | | | | | | | |  /  Set print type to var
-| | | | | | | | | | | | | | |  /  Print var "1"
+| | | | | | | | | | | | | | |  /  Print Var 1
 | | | | | | | | | | | | | | | |  /
 8 1 2 3 1 0 0 7 1 2 3 5 0 0 9 2 1
 ```
@@ -380,8 +395,8 @@ Output: `-400`
 `examples/hello-world`
 
 Timestamp(s):
-- `502090134.051212150`
-- `X04915181.204630000`
+- `502090134.051212150` :: `1985-11-28 22:28:54.051212150`
+- `X04915181.204630000` :: `1998-09-04 07:19:41.204630000`
 
 In this example, we're printing the string "Hello World!". Since character
 codes are easier to encapsulate with 2-digit codes, we need to switch the
@@ -433,8 +448,8 @@ Output: `Hello World!`
 `examples/fibonacci-lt-2000`
 
 Timestamp(s):
-- `812108221.161214200`
-- `X09219227.151272511`
+- `812108221.161214200` :: `1995-09-26 03:37:01.161214200`
+- `X09219227.151272511` :: `1998-10-24 02:53:47.151272511`
 
 For this first Fibonacci Sequence program, we're printing all values that are
 less than 2000. We're going to do something a little hacky in order to fit this
@@ -452,11 +467,11 @@ if they've already been covered in previous examples.
 II](#fibonacci-ii).
 
 ```
-81210 : Set var "1" to 0
-82211 : Set var "2" to 1
+81210 : Set Var 1 to 0
+82211 : Set Var 2 to 1
 
   Begin conditional command
- /  Use var "1" in left hand of conditional
+ /  Use Var 1 in left hand of conditional
 |  /  Set comparison to "<"
 | |  /  Enable loop ("while" mode)
 | | |  /  Set right hand value size to 4
@@ -501,9 +516,9 @@ Output:
 `examples/fibonacci-n-terms`
 
 Timestamp(s):
-- `812108221.183210693`
-- `X11092173.611716127`
-- `X25137921.100000000`
+- `812108221.183210693` :: `1995-09-26 03:37:01.183210693`
+- `X11092173.611716127` :: `1998-11-14 18:09:33.611716127`
+- `X25137921.100000000` :: `1999-04-26 08:45:21.100000000`
 
 For this modification to the Fibonacci Sequence program, we're now using an
 argument from the command line as the number of terms to print. The logic
@@ -522,9 +537,9 @@ As before, previously explained commands will be grouped into logical chunks ins
 of being explained digit-by-digit.
 
 ```
-81210 : Set var "1" to 0
-82211 : Set var "2" to 1
-83210 : Set var "3" to 0
+81210 : Set Var 1 to 0
+82211 : Set Var 2 to 1
+83210 : Set Var 3 to 0
 
 693110 : While Var 9 (cli arg) > 0
    921   : Print Var 1
@@ -583,13 +598,13 @@ Output 2 (`y2k examples/fibonacci-n-terms 20`):
 `examples/fizz-buzz`
 
 Timestamp(s):
-- `502080901.040609262`
-- `X60808010.402212626`
-- `X05000187.319775188`
-- `X12106121.310071111`
-- `X61402159.274200061`
-- `X40139294.200061401`
-- `X59284200.009210000`
+- `502080901.040609262` :: `1985-11-28 19:55:01.040609262`
+- `X60808010.402212626` :: `1997-04-11 19:20:10.402212626`
+- `X05000187.319775188` :: `1995-07-05 21:09:47.319775188`
+- `X12106121.310071111` :: `1995-09-26 03:02:01.310071111`
+- `X61402159.274200061` :: `1997-04-18 16:22:39.274200061`
+- `X40139294.200061401` :: `1996-08-15 14:01:34.200061401`
+- `X59284200.009210000` :: `1997-03-25 03:03:20.009210000`
 
 The Fizz Buzz program highlights a few features that haven't been covered yet,
 namely terminating and "continue"-ing conditionals. We also have to tell the
@@ -609,31 +624,31 @@ continuing to the next part of the timestamp.
 ```
 502 : Change interpreter to 2-digit parsing mode
 
-08 09 01 04 06 09 26 26 : Set var 9 to "fizz"
-08 08 01 04 02 21 26 26 : Set var 8 to "buzz"
+08 09 01 04 06 09 26 26 : Set Var 9 to "fizz"
+08 08 01 04 02 21 26 26 : Set Var 8 to "buzz"
 
 05 00 01 : Change interpreter back to 1-digit parsing mode
 
-87319 : Copy var 9 to var 7 (var 7 = "fizz")
-77518 : Append var 8 to var 7 (var 7 += "buzz")
+87319 : Copy Var 9 to Var 7 (Var 7 = "fizz")
+77518 : Append Var 8 to Var 7 (Var 7 += "buzz")
 
-81210 : Set var 1 to 0
+81210 : Set Var 1 to 0
 
-61213100 : While var 1 < 100
+61213100 : While Var 1 < 100
     71111 : Var 1 += 1
-    6140215 : If var 1 % 15 == 0
-        927 : Print var 7 ("fizzbuzz")
+    6140215 : If Var 1 % 15 == 0
+        927 : Print Var 7 ("fizzbuzz")
         4 : Continue
     2000 : end-if
-    614013 : If var 1 % 3 == 0
-        929 : Print var 9 ("fizz")
+    614013 : If Var 1 % 3 == 0
+        929 : Print Var 9 ("fizz")
         4 : Continue
     2000 : end-if
-    614015 : If var 1 % 5 == 0
-        928 : Print var 8 ("buzz")
+    614015 : If Var 1 % 5 == 0
+        928 : Print Var 8 ("buzz")
         4 : Continue
     2000 : end-if
-    921 : Print var 1
+    921 : Print Var 1
 ```
 
 Output:
@@ -673,16 +688,18 @@ fizzbuzz
 
 ## FAQ
 
-- **Why the pre-2000 timestamp limitation?**
+- **Why the pre-2000 timestamp limitation? Why the name Y2K?**
 
 The language was originally designed to just interpret timestamps of any
-length, but both macOS and Go store Unix nanoseconds as an int64, which means
-most timestamps can only reliably contain 18 digits without causing problems in
-the interpreter. As a result, the maximum timestamp value that the interpreter
-can reliably read falls around the year 2000¹.
+length, but both macOS and Go store Unix nanoseconds as an int64. The max value
+of an int64 has 19 digits (`9223372036854775807`) but it wouldn't be reliable
+to write programs using all 19 digits, since ostensibly there could be programs
+that exceed this value fairly easily. As a result, all timestamps for Y2K
+programs have 18 digits, which results in a maximum timestamp that falls around
+the year 2000¹.
 
-This limitation -- along with the interpreter's original 2-digit-only parsing
-design -- were both relevant to [the "Y2K
+The interpreter was also originally designed to only ever read 2 digits at a time.
+These combined limitations reminded me of [the "Y2K
 Problem"](https://en.wikipedia.org/wiki/Year_2000_problem), hence the name.
 
 - **What does 0-byte actually mean? How can a program be 0 bytes?**
@@ -707,16 +724,16 @@ that variable.
 For example:
 
 ```
-: Loops infinitely, since the loop is initialized
-: with a previous reference to Var 1
+: Loops infinitely, since the reference to Var 1 that
+: was used to create the loop is overwritten
 61213100 : While Var 1 < 100
     74111 : Var 4 += 1
-    81314 : Overwrite Var 1 with Var 4
+    81314 : Overwrite Var 1 with Var 4 values
 
 : Loops as expected
-61213100 : While var 1 < 100
+61213100 : While Var 1 < 100
     74111 : Var 4 += 1
-    71514 : Copy var 4 value to var 1
+    71514 : Copy Var 4 values to Var 1
 ```
 
 - **How would I show proof of my solution in a code golf submission?**
@@ -730,15 +747,22 @@ $ ls *.y2k -lo --time-style="+%s%9N"
 -rw-r--r-- 1 benbusby 0 104915181204630000 2.y2k
 ```
 
+- **Why doesn't Y2K have X feature?**
+
+I probably just haven't implemented it yet -- it's still a work in progress.
+Feel free to open an issue, or refer to the [Contributing](#contributing)
+section if you'd like to help out!
+
 _____
 
 ¹ Technically Sept. 2001, but close enough...
 
 ## Contributing
 
-I would appreciate any input/contributions from the community. Feel free to
-browse the issues tab to see if there's anything that you're interested in
-working on, or add a new example program.
+I would appreciate any input/contributions from anyone. Y2K still needs a lot
+of work, so feel free to submit a PR for a new feature, browse the issues tab
+to see if there's anything that you're interested in working on, or add a new
+example program.
 
 The main thing that would help is trying to solve current or past code-golfing
 problems from https://codegolf.stackexchange.com. If there's a limitation in
