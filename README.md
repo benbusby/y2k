@@ -354,7 +354,7 @@ console after setting it.
 | | | | | | | |  /  Set print type to var (2)
 | | | | | | | | |  /  Print Var 1
 | | | | | | | | | |  /
-8 1 2 3 1 5 0 0 9 2 1
+8 1 2 4 1 5 0 0 9 2 1
 ```
 
 Output: `1500`
