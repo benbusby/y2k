@@ -131,7 +131,7 @@ and the 0s needed to be at the beginning of the next file timestamp, this would
 only be possible if the timestamp was prefixed with a non-zero digit (otherwise
 leading 0s are ignored).
 
-### Step 1 - Parse Command
+### 1 - Parse Command ID
 
 After the timestamps have been concatenated into one long string, this string
 is passed into the top level `interpreter.Parse()` function for initial
@@ -183,12 +183,12 @@ which action to take:
   </tr>
 </table>
 
-### Step 2 - Parse Struct Fields
+### 2 - Populate Command Struct
 
-Each action is associated with its own struct, which holds values that are
-pertinent to the action it needs to perform, and its own parsing function.
-The next N-digits after the command digit are used to populate the struct's
-public fields before using that struct to perform an action:
+Each action is associated with its own struct, which has public fields that are
+relevant to the action it needs to perform, and its own parsing function. The
+next N-digits after the command ID digit are used to populate these fields
+before passing this struct to its parsing function:
 
 <table>
   <tr>
@@ -292,38 +292,38 @@ For example, to create a variable, your timestamp would need to start with
 `8` to initiate variable creation, and then the following 3 digits would be
 used to set the variable's `ID/name`, `Type`, and `Size` attributes.
 
-### Step 3 - Parse Value(s)
+### 3 - Parse Value(s)
 
 Once the struct's public fields have been set, it's passed over to its parser
-function to actually perform the action. Continuing from the previous example
-of creating a variable, this would mean A) populating the variable's value
-until its size matches the `Size` attribute determined earlier, and B) storing
-the variable in a key/value mapping of ID->Variable for future access.
+function to perform the action. Continuing from the previous example of
+creating a variable, this would mean populating the variable's value until its
+size matches the `Size` field determined during the previous step, and then
+storing the variable in a key/value mapping of ID->Variable for future access.
 
-So to set a variable "1" to the integer value 100, the timestamp would need
-to have the following values:
-
-```
-  Begin creating variable
- /  Set variable ID to "1"
-|  /  Set variable Type to int (2)
-| |  /  Set variable Size to 3 digits
-| | |  /  Insert 1
-| | | |  /  Insert 0
-| | | | |  /  Insert 0
-| | | | | | /
-8 1 2 3 1 0 0
-```
-
-Now that the variable has been set, you can reference it in other parts of
-your program using its "1" ID.
-
-The interpreter then returns to "Step 1".
+The interpreter then returns to the first step to read the next command ID.
 
 ___
 
-In the following section, I've outlined some small example programs that
-should help with understanding the language's current functionality.
+So to summarize with an example, here is a segment that your full timestamp
+would need to contain in order to set a variable "1" to the integer value 1500:
+
+```
+[8](1 2 4){1 5 0 0}
+
+  "Create variable" command
+ /  Set variable ID to "1"
+|  /  Set variable Type to int (2)
+| |  /  Set variable Size to 4 digits
+| | |  /  Insert 1
+| | | |  /  Insert 5
+| | | | |  /  Insert 0
+| | | | | |  /  Insert 0
+| | | | | | |  /
+8 1 2 4 1 5 0 0
+```
+
+You can refer to the next section ([Examples](#examples)) for more detailed
+breakdowns of how different functionality is achieved.
 
 ## Examples
 
@@ -335,7 +335,7 @@ how each example works.
 `examples/set-print-var`
 
 Timestamp(s):
-- `812310092.100000000` :: `1995-09-28 11:41:32.100000000`
+- `812415009.210000000` :: `1995-09-29 16:50:09.210000000`
 
 This expands on the example given in the "How It Works" section (setting
 variable "1" to the value 100) by also printing the variable out to the
@@ -345,26 +345,27 @@ console after setting it.
   Begin creating variable
  /  Set variable ID to "1"
 |  /  Set variable Type to int (2)
-| |  /  Set variable Size to 3 digits
+| |  /  Set variable Size to 4 digits
 | | |  /  Insert 1
-| | | |  /  Insert 0
+| | | |  /  Insert 5
 | | | | |  /  Insert 0
-| | | | | |  /  Begin print command
-| | | | | | |  /  Set print type to var
-| | | | | | | |  /  Print Var 1
-| | | | | | | | |  /
-8 1 2 3 1 0 0 9 2 1
+| | | | | |  /  Insert 0
+| | | | | | |  /  Begin print command
+| | | | | | | |  /  Set print type to var (2)
+| | | | | | | | |  /  Print Var 1
+| | | | | | | | | |  /
+8 1 2 3 1 5 0 0 9 2 1
 ```
 
-Output: `100`
+Output: `1500`
 
 ### Modify and Print Variable
 `examples/modify-print-var`
 
 Timestamp(s):
-- `812310071.235009210` :: `1995-09-28 11:41:11.235009210`
+- `812415007.123500921` :: `1995-09-29 16:50:07.123500921`
 
-This example takes an additional step after setting var "1" to 100 by then
+This example takes an additional step after setting var "1" to 1500 by then
 subtracting 500 from that variable, and then printing var "1".
 
 ```
@@ -373,23 +374,24 @@ subtracting 500 from that variable, and then printing var "1".
 |  /  Set variable Type to int (2)
 | |  /  Set variable Size to 3 digits
 | | |  /  Insert 1
-| | | |  /  Insert 0
+| | | |  /  Insert 5
 | | | | |  /  Insert 0
-| | | | | |  /  Begin modify command
-| | | | | | |  /  Target Var 1 for modification
-| | | | | | | |  /  Set modifier function to -=
-| | | | | | | | |  /  Set modifier size to 3 digits
-| | | | | | | | | |  /  Insert 5
-| | | | | | | | | | |  /  Insert 0
-| | | | | | | | | | | |  /   Insert 0
-| | | | | | | | | | | | |  /   Begin print command
-| | | | | | | | | | | | | |  /  Set print type to var
-| | | | | | | | | | | | | | |  /  Print Var 1
-| | | | | | | | | | | | | | | |  /
-8 1 2 3 1 0 0 7 1 2 3 5 0 0 9 2 1
+| | | | | |  /  Insert 0
+| | | | | | |  /  Begin modify command
+| | | | | | | |  /  Target Var 1 for modification
+| | | | | | | | |  /  Set modifier function to -= (2)
+| | | | | | | | | |  /  Set modifier size to 3 digits
+| | | | | | | | | | |  /  Insert 5
+| | | | | | | | | | | |  /  Insert 0
+| | | | | | | | | | | | |  /   Insert 0
+| | | | | | | | | | | | | |  /   Begin print command
+| | | | | | | | | | | | | | |  /  Set print type to var
+| | | | | | | | | | | | | | | |  /  Print Var 1
+| | | | | | | | | | | | | | | | |  /
+8 1 2 4 1 5 0 0 7 1 2 3 5 0 0 9 2 1
 ```
 
-Output: `-400`
+Output: `1000`
 
 ### Hello World
 `examples/hello-world`
@@ -402,12 +404,12 @@ In this example, we're printing the string "Hello World!". Since character
 codes are easier to encapsulate with 2-digit codes, we need to switch the
 interpreter to 2-digit parsing mode at the very beginning.
 
-As noted at the end of the explanation, print strings are terminated using
-two space characters ("0") * N-digit parsing size. So for 2-digit parsing,
+As seen at the end of the explanation below, print strings are terminated using
+two space ("0") characters * N-digit parsing size. So for 2-digit parsing,
 we'll need "00 00" to tell the interpreter to stop printing the string.
 
-I've broken up the timestamps below into separate sections to make it a
-little easier to read.
+The timestamp values below have been broken up into separate sections to make
+it a little easier to read.
 
 ```
   Begin changing interpreter state
@@ -690,13 +692,14 @@ fizzbuzz
 
 - **Why the pre-2000 timestamp limitation? Why the name Y2K?**
 
-The language was originally designed to just interpret timestamps of any
-length, but both macOS and Go store Unix nanoseconds as an int64. The max value
-of an int64 has 19 digits (`9223372036854775807`) but it wouldn't be reliable
-to write programs using all 19 digits, since ostensibly there could be programs
-that exceed this value fairly easily. As a result, all timestamps for Y2K
-programs have 18 digits, which results in a maximum timestamp that falls around
-the year 2000¹.
+The language was originally designed to interpret timestamps of any length, but
+both macOS and Go store Unix nanoseconds as an int64. The max value of an int64
+has 19 digits (`9223372036854775807`) but it wouldn't be reliable to write
+programs using all 19 digits, since ostensibly there could be programs that
+exceed this value fairly easily (a program to print the letter 'c' would start
+with `923...`, for example). As a result, all timestamps for Y2K programs have
+18 digits, which results in a maximum timestamp that falls around the year
+2000¹.
 
 The interpreter was also originally designed to only ever read 2 digits at a time.
 These combined limitations reminded me of [the "Y2K
@@ -710,7 +713,7 @@ program is interpreted. And since every file has to have a timestamp associated
 with it anyway, there aren't any extra bytes needed to achieve this
 functionality. Technically though, there's no such thing as a 0 byte file --
 the metadata for that file does have to be stored somewhere. But for code
-golfing purposes, it should be counted as 0 bytes.
+golfing purposes, I believe it would be counted as 0 bytes.
 
 - **Why are there two ways to copy a variable's value to a new variable?**
 
@@ -724,16 +727,23 @@ that variable.
 For example:
 
 ```
-: Loops infinitely, since the reference to Var 1 that
-: was used to create the loop is overwritten
-61213100 : While Var 1 < 100
-    74111 : Var 4 += 1
-    81314 : Overwrite Var 1 with Var 4 values
+81210 : int Var1 = 0
+82210 : int Var2 = 0
 
-: Loops as expected
+: BAD
+: Loops infinitely, since the reference to Var 1 that
+: was used to create the loop is overwritten, and the
+: value of the original reference is never updated
 61213100 : While Var 1 < 100
-    74111 : Var 4 += 1
-    71514 : Copy Var 4 values to Var 1
+    72111 : Var 2 += 1
+    81312 : Overwrite Var 1 with Var 2 values
+
+: GOOD
+: Loops as expected, Var 1's value is updated on each
+: iteration with Var 2's value
+61213100 : While Var 1 < 100
+    72111 : Var 2 += 1
+    71512 : Copy Var 2 value to Var 1
 ```
 
 - **How would I show proof of my solution in a code golf submission?**
@@ -749,9 +759,8 @@ $ ls *.y2k -lo --time-style="+%s%9N"
 
 - **Why doesn't Y2K have X feature?**
 
-I probably just haven't implemented it yet -- it's still a work in progress.
-Feel free to open an issue, or refer to the [Contributing](#contributing)
-section if you'd like to help out!
+The language is still in development. Feel free to open an issue, or refer to
+the [Contributing](#contributing) section if you'd like to help out!
 
 _____
 
