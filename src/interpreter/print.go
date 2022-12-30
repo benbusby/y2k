@@ -2,9 +2,9 @@ package interpreter
 
 import (
 	"fmt"
+	"github.com/benbusby/y2k/src/utils"
 	"reflect"
 	"strings"
-	"y2k/src/utils"
 )
 
 // Y2KPrintType is an enum to indicate to the interpreter what should be printed.

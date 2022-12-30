@@ -2,9 +2,9 @@ package interpreter
 
 import (
 	"fmt"
+	"github.com/benbusby/y2k/src/utils"
 	"reflect"
 	"strings"
-	"y2k/src/utils"
 )
 
 // ComparisonMap holds an int->function mapping to compare a variable against

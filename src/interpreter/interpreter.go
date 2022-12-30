@@ -2,8 +2,8 @@ package interpreter
 
 import (
 	"fmt"
+	"github.com/benbusby/y2k/src/utils"
 	"reflect"
-	"y2k/src/utils"
 )
 
 type Y2K struct {

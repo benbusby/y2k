@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"y2k/src/interpreter"
-	"y2k/src/utils"
+	"github.com/benbusby/y2k/src/interpreter"
+	"github.com/benbusby/y2k/src/utils"
 )
 
 func main() {

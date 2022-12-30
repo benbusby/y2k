@@ -2,11 +2,11 @@ package interpreter
 
 import (
 	"fmt"
+	"github.com/benbusby/y2k/src/utils"
 	"reflect"
 	"strconv"
 	"strings"
 	"unicode"
-	"y2k/src/utils"
 )
 
 var VarMap = map[uint8]*Y2KVar{}
