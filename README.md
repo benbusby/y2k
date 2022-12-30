@@ -221,7 +221,7 @@ before passing this struct to its parsing function:
         <ul>
           <li>1 --> String</li>
           <li>2 --> Int</li>
-          <li>3 --> Copy Var</li>
+          <li>9 --> Copy Var</li>
         </ul>
         <li>Size (# of digits/chars, or the var ID for Type 3)</li>
       </ol>
@@ -631,8 +631,8 @@ continuing to the next part of the timestamp.
 
 05 00 01 : Change interpreter back to 1-digit parsing mode
 
-87319 : Copy Var 9 to Var 7 (Var 7 = "fizz")
-77518 : Append Var 8 to Var 7 (Var 7 += "buzz")
+87919 : Copy Var 9 value to Var 7 (Var 7 = "fizz")
+77518 : Append Var 8 value to Var 7 (Var 7 += "buzz")
 
 81210 : Set Var 1 to 0
 
@@ -736,7 +736,7 @@ For example:
 : value of the original reference is never updated
 61213100 : While Var 1 < 100
     72111 : Var 2 += 1
-    81312 : Overwrite Var 1 with Var 2 values
+    81912 : Overwrite Var 1 with Var 2 values
 
 : GOOD
 : Loops as expected, Var 1's value is updated on each

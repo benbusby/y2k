@@ -4,7 +4,7 @@ source "$(dirname $(readlink -f "$0"))/../cmds.sh"
 
 set_file_time 502080901.040609262 01.y2k
 set_file_time 960808010.402212626 02.y2k
-set_file_time 905000187.319775188 03.y2k
+set_file_time 905000187.919775188 03.y2k
 set_file_time 912106121.310071111 04.y2k
 set_file_time 961402159.274200061 05.y2k
 set_file_time 940139294.200061401 06.y2k

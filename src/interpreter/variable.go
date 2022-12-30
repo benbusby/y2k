@@ -17,7 +17,7 @@ type Y2KVarType uint8
 const (
 	Y2KString  Y2KVarType = 1
 	Y2KNumber  Y2KVarType = 2
-	Y2KVarCopy Y2KVarType = 3
+	Y2KVarCopy Y2KVarType = 9
 )
 
 // Y2KVar is a struct for all variables created by Y2K programs. These contain
