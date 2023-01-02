@@ -20,7 +20,7 @@ type Y2KCommand uint8
 
 const (
 	PRINT     Y2KCommand = 9
-	SET       Y2KCommand = 8
+	CREATE    Y2KCommand = 8
 	MODIFY    Y2KCommand = 7
 	CONDITION Y2KCommand = 6
 	META      Y2KCommand = 5
@@ -103,7 +103,7 @@ func (y2k Y2K) OutputMsg(msg string) {
 
 // Parse manages interpreter state and hands off timestamp parsing to the
 // appropriate function when changes to interpreter state are made.
-// For example, creation of a variable jumps from STANDBY to SET states,
+// For example, creation of a variable jumps from STANDBY to CREATE states,
 // and moves timestamp parsing to ParseVariable until that function passes
 // parsing back to Parse.
 func (y2k Y2K) Parse(timestamp string) string {
@@ -141,7 +141,7 @@ func (y2k Y2K) ParseMeta(timestamp string, val reflect.Value) string {
 func init() {
 	instMap = map[Y2KCommand]Instruction{
 		PRINT:     {reflect.ValueOf(&Y2KPrint{}).Elem(), Y2K.ParsePrint},
-		SET:       {reflect.ValueOf(&Y2KVar{}).Elem(), Y2K.ParseVariable},
+		CREATE:    {reflect.ValueOf(&Y2KVar{}).Elem(), Y2K.ParseVariable},
 		MODIFY:    {reflect.ValueOf(&Y2KMod{}).Elem(), Y2K.ParseModify},
 		CONDITION: {reflect.ValueOf(&Y2KCond{}).Elem(), Y2K.ParseCondition},
 		META:      {reflect.ValueOf(&Y2K{}).Elem(), Y2K.ParseMeta},

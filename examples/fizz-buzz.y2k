@@ -1,0 +1,42 @@
+# fizz-buzz.y2k
+# This program loops through all numbers from 1-100. If the number is
+# divisible by 3, it prints "fizz". If it's divisible by 5, it prints
+# "buzz". If it's divisible by both 3 and 5, it prints "fizzbuzz". If
+# none of those conditions are met, it just prints the number.
+
+502 # Change interpreter to 2-digit parsing mode
+
+# Set variables 9 and 8 to "fizz" and "buzz" respectively
+08 09 01 04 # Create variable 9 with type string (1) and length 4
+06 09 26 26 # Insert 4 chars ("fizz") into variable 9
+08 08 01 04 # Create variable 8 with type string (1) and length 4
+02 21 26 26 # Insert 4 chars ("buzz") into variable 8
+
+05 00 01 # Change interpreter back to 1-digit parsing mode
+
+# Set variable 7 to "fizzbuzz"
+8791 # Create variable 7 with type "copy" (9) and length 1 (variable ID length)
+9    # Use 1 digit variable ID (9) to copy values from var 9 to var 7
+7751 # On variable 7, call function "append var" (5) with a 1 digit argument
+8    # Use 1 digit variable ID (8) to append values from var 8 to var 7
+
+# Create variable 1 for iterating from 0 to 100
+8121 # Create variable 1 with type int (2) and size 1
+0    # Insert 1 digit (0) into variable 1
+
+# Begin the loop from 0 to 100
+61213100 # while variable 1 < 100
+    71111 # var 1 += 1
+    6140215 # if var 1 % 15 == 0
+        927 # print var 7 ("fizzbuzz")
+          4 # continue
+    2000 # end-if
+    614013 # if var 1 % 3 == 0
+       929 # print var 9 ("fizz")
+         4 # continue
+    2000 # end-if
+    614015 # if var 1 % 5 == 0
+        928 # print var 8 ("buzz")
+          4 # continue
+    2000 # end-if
+    921 # print var 1

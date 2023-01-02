@@ -73,46 +73,62 @@ go build
 ## Usage
 
 ```
-y2k [args] <directory>
+y2k [args] <input>
 
 Args:
   -d int
-    	Set # of digits to parse at a time (default 1)
+        Set # of digits to parse at a time (default 1)
   -debug
-    	Enable to view interpreter steps in console
-  ?
-        Additional arguments are passed to programs as variables
-        (see Fibonacci Sequence II for an example)
+        Enable to view interpreter steps in console
+  -export
+        Export a Y2K raw file to a set of timestamp-only files
+  -outdir string
+        Set the output directory for timestamp-only files when exporting a raw Y2K file.
+        This directory will be created if it does not exist. (default "./y2k-out")
+  -raw
+        Enable to read a single Y2K file's contents, instead of timestamps
 ```
 
 ____
 
-The directory provided should have a list of `*.y2k` files that have already
-had their timestamps modified as needed. The `init.sh` script in each example
-folder should give a good idea of how each program is created. The basic
-approach is to create files using `touch` (or if you're on macOS, `gtouch` from
-the `coreutils` package) to set their date to the desired timestamp.
+***Note:** See [CHEATSHEET.md](CHEATSHEET.md) for help with writing Y2K commands.*
 
-From the "[modify and print variable](#modify-and-print-variable)" example:
-```
-touch --date=@812310071.235009210 1.y2k
-```
+The simple way to write Y2K programs is to write all commands to a file (i.e.
+`set-and-print-var.y2k`) as file content and use the `-raw` flag to run the file.
+For example, from [the "Set and Print Variable" program](#set-and-print-variable):
 
-For programs that require multiple timestamps, just increment the number used
-in the `.y2k` filename, and continue your program on the following timestamp,
-ignoring the first digit (the reason for this is explained in the [How It
-Works](#how-it-works) section).
+```elixir
+8124 # Create new variable 1 with type int (2) and size 4
+1500 # Insert 4 digits (1500) into variable 1
 
-From the "[Fibonacci Sequence < 2000](#fibonacci-i)" example:
-```
-touch --date=@812108221.161214200 1.y2k
-touch --date=@909219227.151272511 2.y2k
+921 # Print variable 1
 ```
 
-In this second example, the first digit of the `2.y2k` timestamp will be ignored,
-which allows the number `2000` to span across the two file timestamps.
+```shell
+$ y2k -raw set-and-print-var.y2k
+1500
+```
 
-See [Examples](#examples) for more detail on how each example works.
+You can then export this file to a set of empty 0-byte files (or in this
+example, just one file) with their timestamps modified to achieve the same
+functionality as the raw file:
+
+```shell
+$ y2k -export set-and-print-var.y2k
+Writing ./y2k-out/0.y2k -- 812415009210000000 (1995-09-29 16:50:09.21 -0600 MDT)
+$ ls ./y2k-out/*.y2k -lo --time-style="+%s%9N"
+-rw-r--r-- 1 benbusby 0 812415009210000000 ./y2k-out/0.y2k
+```
+
+You can then pass the new output directory with `y2k` to verify that the program
+still functions the same, but with completely empty 0-byte files.
+
+```shell
+$ y2k ./y2k-out
+1500
+```
+
+See [Examples](#examples) for more detailed breakdowns of current example programs.
 
 ## How It Works
 
@@ -131,208 +147,27 @@ and the 0s needed to be at the beginning of the next file timestamp, this would
 only be possible if the timestamp was prefixed with a non-zero digit (otherwise
 leading 0s are ignored).
 
-### 1 - Parse Command ID
+After the timestamps have been concatenated into one long string, this string is
+passed into the top level `interpreter.Parse()` function, which will read in a
+command ID to determine which action to take. The interpreter will then parse the
+fields that pertain to that command, followed by the value (if applicable), before
+returning to parse the next command ID.
 
-After the timestamps have been concatenated into one long string, this string
-is passed into the top level `interpreter.Parse()` function for initial
-parsing. `Parse` will check the first digit of the timestamp to determine
-which action to take:
-
-<table>
-  <tr>
-    <th>Command ID</th>
-    <th>Action</th>
-    <th>Struct</th>
-    <th>Parser</th>
-  </tr>
-  <tr>
-    <td><code>9</code></td>
-    <td>Print var or string</td>
-    <td><code>Y2KPrint</code></td>
-    <td><code>src/print.go</code> -> <code>ParsePrint</code></td>
-  </tr>
-  <tr>
-    <td><code>8</code></td>
-    <td>Create variable</td>
-    <td><code>Y2KVar</code></td>
-    <td><code>src/variable.go</code> -> <code>ParseVariable</code></td>
-  </tr>
-  <tr>
-    <td><code>7</code></td>
-    <td>Modify variable</td>
-    <td><code>Y2KModify</code></td>
-    <td><code>src/modify.go</code> -> <code>ParseModify</code></td>
-  </tr>
-  <tr>
-    <td><code>6</code></td>
-    <td>Evaluate condition</td>
-    <td><code>Y2KCond</code></td>
-    <td><code>src/condition.go</code> -> <code>ParseCondition</code></td>
-  </tr>
-  <tr>
-    <td><code>5</code></td>
-    <td>Change interpreter state</td>
-    <td><code>Y2K</code></td>
-    <td><code>src/interpreter.go</code> -> <code>ParseMeta (Parse)</code></td>
-  </tr>
-  <tr>
-    <td><code>4</code></td>
-    <td>Continue</td>
-    <td>N/A</td>
-    <td>N/A</td>
-  </tr>
-</table>
-
-### 2 - Populate Command Struct
-
-Each action is associated with its own struct, which has public fields that are
-relevant to the action it needs to perform, and its own parsing function. The
-next N-digits after the command ID digit are used to populate these fields
-before passing this struct to its parsing function:
-
-<table>
-  <tr>
-    <th>Struct (Command ID)</th>
-    <th># Public Fields</th>
-    <th>Fields (in order)</th>
-    <th>Example</th>
-  </tr>
-  <tr>
-    <td><code>Y2KPrint (9)</code></td>
-    <td>1</td>
-    <td>
-      <ol>
-        <li>Type</li>
-        <ul>
-          <li>1 --> Variable</li>
-          <li>2 --> String</li>
-        </ul>
-      </ol>
-    </td>
-    <td>Print var 3: <code>[9]13</code></td>
-  </tr>
-  <tr>
-    <td><code>Y2KVar (8)</code></td>
-    <td>3</td>
-    <td>
-      <ol>
-        <li>ID (numeric "name" of var)</li>
-        <li>Type</li>
-        <ul>
-          <li>1 --> String</li>
-          <li>2 --> Int</li>
-          <li>9 --> Copy Var</li>
-        </ul>
-        <li>Size (# of digits/chars, or the var ID for Type 3)</li>
-      </ol>
-    </td>
-    <td>Set var 3 to 5000: <code>[8]3245000</code></td>
-  </tr>
-  <tr>
-    <td><code>Y2KMod (7)</code></td>
-    <td>3</td>
-    <td>
-      <ol>
-        <li>Var ID (ID of the variable to modify)</li>
-        <li>Function</li>
-        <ul>
-          <li>1 --> <code>+=</code></li>
-          <li>2 --> <code>-=</code></li>
-          <li>3 --> <code>*=</code></li>
-          <li>4 --> <code>/=</code></li>
-          <li>5 --> <code>+= other var value</code></li>
-          <li>6 --> <code>Copy other var value</code></li>
-        </ul>
-        <li>Size (# of digits/chars to use for modifying)</li>
-      </ol>
-    </td>
-    <td>Var 3 /= 200: <code>[7]343200</code></td>
-  </tr>
-  <tr>
-    <td><code>Y2KCond (6)</code></td>
-    <td>4</td>
-    <td>
-      <ol>
-        <li>Var ID (ID of the variable to use in the "left hand" side of the condition)</li>
-        <li>Function</li>
-        <ul>
-          <li>1 --> <code>==</code></li>
-          <li>2 --> <code><</code></li>
-          <li>3 --> <code>></code></li>
-          <li>4 --> <code>Is evenly divisible by</code></li>
-        </ul>
-        <li>Loop</li>
-        <ul>
-          <li>0 --> Treat as an <code>if</code></li>
-          <li>1 --> Treat as a <code>while</code></li>
-        </ul>
-        <li>Size (# of digits/chars to use in the "right hand" side of the condition)</li>
-      </ol>
-    </td>
-    <td>If var 3 is 25, print 'a': <code>[6]310225[9]21</code></td>
-  </tr>
-  <tr>
-    <td><code>Y2K (5)</code> (same as top-level interpreter struct)</td>
-    <td>2</td>
-    <td>
-      <ol>
-        <li>Debug</li>
-        <ul>
-          <li>0 --> Debug mode off</li>
-          <li>1 --> Debug mode on</li>
-        </ul>
-        <li>Digits (# of digits to parse per pass)</li>
-      </ol>
-    </td>
-    <td>Change interpreter digit parsing size to 2: <code>[5]02</code></td>
-  </tr>
-</table>
-
-For example, to create a variable, your timestamp would need to start with
-`8` to initiate variable creation, and then the following 3 digits would be
-used to set the variable's `ID/name`, `Type`, and `Size` attributes.
-
-### 3 - Parse Value(s)
-
-Once the struct's public fields have been set, it's passed over to its parser
-function to perform the action. Continuing from the previous example of
-creating a variable, this would mean populating the variable's value until its
-size matches the `Size` field determined during the previous step, and then
-storing the variable in a key/value mapping of ID->Variable for future access.
-
-The interpreter then returns to the first step to read the next command ID.
-
-___
-
-So to summarize with an example, here is a segment that your full timestamp
-would need to contain in order to set a variable "1" to the integer value 1500:
-
-```
-[8](1 2 4){1 5 0 0}
-
-  "Create variable" command
- /  Set variable ID to "1"
-|  /  Set variable Type to int (2)
-| |  /  Set variable Size to 4 digits
-| | |  /  Insert 1
-| | | |  /  Insert 5
-| | | | |  /  Insert 0
-| | | | | |  /  Insert 0
-| | | | | | |  /
-8 1 2 4 1 5 0 0
-```
-
-You can refer to the next section ([Examples](#examples)) for more detailed
-breakdowns of how different functionality is achieved.
+[CHEATSHEET.md](CHEATSHEET.md) contains a simplified breakdown of command IDs,
+command fields, and when values are needed for the different commands. Please also
+refer to the following [Examples](#examples) section for simple programs that help to
+inform how the Y2K interpreter works.
 
 ## Examples
 
-Each example has its own directory in the repo with a script to create the
-files with the appropriate timestamp. The documentation here is to explain
-how each example works.
+Each example below is taken directly from the [`examples`](examples) folder,
+but with added explanation for how/why they work.
+
+All examples need to be run with the `-raw` flag, but can be exported to
+0-byte solutions using the `-export` flag if desired.
 
 ### Set and Print Variable
-`examples/set-print-var`
+[`examples/set-and-print-var.y2k`](examples/set-and-print-var.y2k)
 
 Timestamp(s):
 - `812415009.210000000` :: `1995-09-29 16:50:09.210000000`
@@ -341,26 +176,17 @@ This expands on the example given in the "How It Works" section (setting
 variable "1" to the value 100) by also printing the variable out to the
 console after setting it.
 
-```
-  Begin creating variable
- /  Set variable ID to "1"
-|  /  Set variable Type to int (2)
-| |  /  Set variable Size to 4 digits
-| | |  /  Insert 1
-| | | |  /  Insert 5
-| | | | |  /  Insert 0
-| | | | | |  /  Insert 0
-| | | | | | |  /  Begin print command
-| | | | | | | |  /  Set print type to var (2)
-| | | | | | | | |  /  Print Var 1
-| | | | | | | | | |  /
-8 1 2 4 1 5 0 0 9 2 1
+```elixir
+8124 # Create new variable 1 with type int (2) and size 4
+1500 # Insert 4 digits (1500) into variable 1
+
+921 # Print variable 1
 ```
 
 Output: `1500`
 
 ### Modify and Print Variable
-`examples/modify-print-var`
+[`examples/modify-and-print-var.y2k`](examples/modify-and-print-var.y2k)
 
 Timestamp(s):
 - `812415007.123500921` :: `1995-09-29 16:50:07.123500921`
@@ -368,33 +194,20 @@ Timestamp(s):
 This example takes an additional step after setting var "1" to 1500 by then
 subtracting 500 from that variable, and then printing var "1".
 
-```
-  Begin creating variable
- /  Set variable ID to "1"
-|  /  Set variable Type to int (2)
-| |  /  Set variable Size to 3 digits
-| | |  /  Insert 1
-| | | |  /  Insert 5
-| | | | |  /  Insert 0
-| | | | | |  /  Insert 0
-| | | | | | |  /  Begin modify command
-| | | | | | | |  /  Target Var 1 for modification
-| | | | | | | | |  /  Set modifier function to -= (2)
-| | | | | | | | | |  /  Set modifier size to 3 digits
-| | | | | | | | | | |  /  Insert 5
-| | | | | | | | | | | |  /  Insert 0
-| | | | | | | | | | | | |  /   Insert 0
-| | | | | | | | | | | | | |  /   Begin print command
-| | | | | | | | | | | | | | |  /  Set print type to var
-| | | | | | | | | | | | | | | |  /  Print Var 1
-| | | | | | | | | | | | | | | | |  /
-8 1 2 4 1 5 0 0 7 1 2 3 5 0 0 9 2 1
+```elixir
+8124 # Create new variable 1 with type int (2) and size 4
+1500 # Insert 4 digits (1500) into variable 1
+
+7123 # On variable 1, call function "-=" (2) with a 3-digit argument
+500  # Insert 3 digits (500) into function argument
+
+921  # Print variable 1
 ```
 
 Output: `1000`
 
 ### Hello World
-`examples/hello-world`
+[`examples/hello-world.y2k`](examples/hello-world.y2k)
 
 Timestamp(s):
 - `502090134.051212150` :: `1985-11-28 22:28:54.051212150`
@@ -408,46 +221,21 @@ As seen at the end of the explanation below, print strings are terminated using
 two space ("0") characters * N-digit parsing size. So for 2-digit parsing,
 we'll need "00 00" to tell the interpreter to stop printing the string.
 
-The timestamp values below have been broken up into separate sections to make
-it a little easier to read.
+```elixir
+502 # Switch interpreter to 2-digit parsing size
 
-```
-  Begin changing interpreter state
- /  Set debug mode to "off" (default)
-|  /  Switch to 2-digit parsing size
-| |  /
-5 0 2
+09 01 # Begin print string command
 
-  Begin print command
- /   Set print type to string
-|   /   Print "H"
-|  |   /   Print "e"
-|  |  |   /   Print "l"
-|  |  |  |   /   Print "l"
-|  |  |  |  |   /   Print "o"
-|  |  |  |  |  |   /   Print " "
-|  |  |  |  |  |  |   /
-09 01 34 05 12 12 15 00
+34 05 12 12 15 00 # Print "Hello "
+49 15 18 12 04 63 # Print "World!"
 
-  Print "W"
- /   Print "o"
-|   /   Print "r"
-|  |   /   Print "l"
-|  |  |   /   Print "d"
-|  |  |  |   /   Print "!"
-|  |  |  |  |   /
-49 15 18 12 04 63
-
-End print string
- / \
-|   |
-00 00
+00 00 # End print command
 ```
 
 Output: `Hello World!`
 
 ### Fibonacci I
-`examples/fibonacci-lt-2000`
+[`examples/fibonacci-lt-2000`](examples/fibonacci-lt-2000.y2k)
 
 Timestamp(s):
 - `812108221.161214200` :: `1995-09-26 03:37:01.161214200`
@@ -461,34 +249,25 @@ add them to each other until the lower of the two values is above 2000. This
 works since we know that an even number of terms is needed to reach `1597`, the
 highest Fibonacci number that is less than `2000`.
 
-Like the "Hello World!" example, the timestamps below have been broken up to
-make them easier to read. I've also grouped some commands into chunks of digits
-if they've already been covered in previous examples.
-
 **Note:** For a more robust Fibonacci Sequence implementation, see [Fibonacci
 II](#fibonacci-ii).
 
-```
-81210 : Set Var 1 to 0
-82211 : Set Var 2 to 1
+```elixir
+8121 # Create variable 1 with type int (2) and size 1
+0    # Insert 1 digit (0) into variable 1
+8221 # Create variable 2 with type int (2) and size 1
+1    # Insert 1 digit (1) into variable 2
 
-  Begin conditional command
- /  Use Var 1 in left hand of conditional
-|  /  Set comparison to "<"
-| |  /  Enable loop ("while" mode)
-| | |  /  Set right hand value size to 4
-| | | |  /  Insert 2
-| | | | |  /  Insert 0
-| | | | | |  /  Insert 0
-| | | | | | |  /  Insert 0
-| | | | | | | |  /
-6 1 2 1 4 1 0 0 0
+# Init while loop (while var 1 < 2000)
+61214 # Create conditional using variable 1, with comparison "<" (2),
+      # as a loop (1), and with a right hand value size of 4
+2000  # Insert 4 digits (2000) into conditional's right hand value
 
-921 : Print var "1"
-922 : Print var "2"
-
-71512 : Var 1 += Var 2
-72511 : Var 2 += Var 1
+# Begin while loop
+    921 # Print variable 1
+    922 # Print variable 2
+    71512 # var 1 += var 2
+    72511 # var 2 += var 1
 ```
 
 Output:
@@ -515,7 +294,7 @@ Output:
 ```
 
 ### Fibonacci II
-`examples/fibonacci-n-terms`
+[`examples/fibonacci-n-terms.y2k`](examples/fibonacci-n-terms.y2k)
 
 Timestamp(s):
 - `812108221.183210693` :: `1995-09-26 03:37:01.183210693`
@@ -535,23 +314,28 @@ the "next" value in the sequence. On each loop iteration, we 1) print "current",
 set "placeholder" to "current", 3) set "current" to "next", 4) add "placeholder"
 to "next", and 5) decrement counter.
 
-As before, previously explained commands will be grouped into logical chunks instead
-of being explained digit-by-digit.
+```elixir
+8121 # Create variable 1 with type int (2) and size 1
+0    # Insert 1 digit (0) into variable 1
+8221 # Create variable 2 with type int (2) and size 1
+1    # Insert 1 digit (1) into variable 2
+8321 # Create variable 3 with type int (2) and size 1
+0    # Insert 1 digit (0) into variable 3
 
+# Init while loop (while var 9 > 0)
+69311 # Create conditional using variable 9, with comparison ">" (3),
+      # as a loop (1), and with a right hand value size of 1
+0     # Insert 1 digit (0) into conditional's right hand value
+
+# Begin while loop
+    921 # Print var 9
+    73611 # var 3 = var 1
+    71612 # var 1 = var 2
+    72513 # var 2 += var 3
+    79211 # var 9 -= 1
 ```
-81210 : Set Var 1 to 0
-82211 : Set Var 2 to 1
-83210 : Set Var 3 to 0
 
-693110 : While Var 9 (cli arg) > 0
-   921   : Print Var 1
-   73611 : Var 3 = Var 1
-   71612 : Var 1 = Var 2
-   72513 : Var 2 += Var 3
-   79211 : Var 9 -= 1
-```
-
-Output 1 (`y2k examples/fibonacci-n-terms 15`):
+Output 1 (`y2k -raw examples/fibonacci-n-terms.y2k 15`):
 
 ```
 0
@@ -571,7 +355,7 @@ Output 1 (`y2k examples/fibonacci-n-terms 15`):
 377
 ```
 
-Output 2 (`y2k examples/fibonacci-n-terms 20`):
+Output 2 (`y2k -raw examples/fibonacci-n-terms.y2k 20`):
 
 ```
 0
@@ -597,7 +381,7 @@ Output 2 (`y2k examples/fibonacci-n-terms 20`):
 ```
 
 ### Fizz Buzz
-`examples/fizz-buzz`
+[`examples/fizz-buzz.y2k`](examples/fizz-buzz.y2k)
 
 Timestamp(s):
 - `502080901.040609262` :: `1985-11-28 19:55:01.040609262`
@@ -613,44 +397,54 @@ namely terminating and "continue"-ing conditionals. We also have to tell the
 interpreter to switch between 1- and 2-digit parsing in order to create our
 words "fizz" and "buzz" while maintaining the efficiency of 1-digit parsing.
 
-The value `2000`, when used with a non-looped conditional, tells the
+The value `2000`, when used within a non-looped conditional, tells the
 interpreter where the "body" of the statement needs to end. This is an
-arbitrary value (although fitting given the name of the language) that is used
+arbitrarily chosen value (but fits with the name of the language) that is used
 multiple times in this program to tell the interpreter where an "if" statement
-ends. There's also the new parse-command `4` (aka `CONTINUE`), which returns an
+ends. There's also the new command ID `4` (aka `CONTINUE`), which returns an
 empty string to the parent parser function instead of the remainder of the
 timestamp. Since this is being used inside a "while" loop, this returns the
 interpreter back to the beginning of the loop to reevaluate instead of
 continuing to the next part of the timestamp.
 
-```
-502 : Change interpreter to 2-digit parsing mode
 
-08 09 01 04 06 09 26 26 : Set Var 9 to "fizz"
-08 08 01 04 02 21 26 26 : Set Var 8 to "buzz"
+```elixir
+502 # Change interpreter to 2-digit parsing mode
 
-05 00 01 : Change interpreter back to 1-digit parsing mode
+# Set variables 9 and 8 to "fizz" and "buzz" respectively
+08 09 01 04 # Create variable 9 with type string (1) and length 4
+06 09 26 26 # Insert 4 chars ("fizz") into variable 9
+08 08 01 04 # Create variable 8 with type string (1) and length 4
+02 21 26 26 # Insert 4 chars ("buzz") into variable 8
 
-87919 : Copy Var 9 value to Var 7 (Var 7 = "fizz")
-77518 : Append Var 8 value to Var 7 (Var 7 += "buzz")
+05 00 01 # Change interpreter back to 1-digit parsing mode
 
-81210 : Set Var 1 to 0
+# Set variable 7 to "fizzbuzz"
+8791 # Create variable 7 with type "copy" (9) and length 1 (variable ID length)
+9    # Use 1 digit variable ID (9) to copy values from var 9 to var 7
+7751 # On variable 7, call function "append var" (5) with a 1 digit argument
+8    # Use 1 digit variable ID (8) to append values from var 8 to var 7
 
-61213100 : While Var 1 < 100
-    71111 : Var 1 += 1
-    6140215 : If Var 1 % 15 == 0
-        927 : Print Var 7 ("fizzbuzz")
-        4 : Continue
-    2000 : end-if
-    614013 : If Var 1 % 3 == 0
-        929 : Print Var 9 ("fizz")
-        4 : Continue
-    2000 : end-if
-    614015 : If Var 1 % 5 == 0
-        928 : Print Var 8 ("buzz")
-        4 : Continue
-    2000 : end-if
-    921 : Print Var 1
+# Create variable 1 for iterating from 0 to 100
+8121 # Create variable 1 with type int (2) and size 1
+0    # Insert 1 digit (0) into variable 1
+
+# Begin the loop from 0 to 100
+61213100 # while variable 1 < 100
+    71111 # var 1 += 1
+    6140215 # if var 1 % 15 == 0
+        927 # print var 7 ("fizzbuzz")
+          4 # continue
+    2000 # end-if
+    614013 # if var 1 % 3 == 0
+       929 # print var 9 ("fizz")
+         4 # continue
+    2000 # end-if
+    614015 # if var 1 % 5 == 0
+        928 # print var 8 ("buzz")
+          4 # continue
+    2000 # end-if
+    921 # print var 1
 ```
 
 Output:
@@ -726,36 +520,40 @@ that variable.
 
 For example:
 
-```
-81210 : int Var1 = 0
-82210 : int Var2 = 0
+```elixir
+81210 # int var 1 = 0
+82210 # int var 2 = 0
 
-: BAD
-: Loops infinitely, since the reference to Var 1 that
-: was used to create the loop is overwritten, and the
-: value of the original reference is never updated
-61213100 : While Var 1 < 100
-    72111 : Var 2 += 1
-    81912 : Overwrite Var 1 with Var 2 values
+# BAD
+# Loops infinitely, since the reference to Var 1 that
+# was used to create the loop is overwritten, and the
+# value of the original reference is never updated
+61213100 # While Var 1 < 100
+    72111 # Var 2 += 1
+    81912 # Overwrite Var 1 with Var 2 values
 
-: GOOD
-: Loops as expected, Var 1's value is updated on each
-: iteration with Var 2's value
-61213100 : While Var 1 < 100
-    72111 : Var 2 += 1
-    71512 : Copy Var 2 value to Var 1
+# GOOD
+# Loops as expected, Var 1's value is updated on each
+# iteration with Var 2's value
+61213100 # While Var 1 < 100
+    72111 # Var 2 += 1
+    71512 # Copy Var 2 value to Var 1
 ```
 
 - **How would I show proof of my solution in a code golf submission?**
 
-I'm not sure the best way to do this yet. My guess would be something
-like:
+I'm not sure the best way to do this yet. Assuming you wrote your solution
+as a "raw" Y2K file, you can run `y2k -export my-program.y2k`, and then
+run the following command:
 
 ```shell
-$ ls *.y2k -lo --time-style="+%s%9N"
--rw-r--r-- 1 benbusby 0 502090134051212150 1.y2k
--rw-r--r-- 1 benbusby 0 104915181204630000 2.y2k
+$ ls ./y2k-out/*.y2k -lo --time-style="+%s%9N"
+-rw-r--r-- 1 benbusby 0 502090134051212150 0.y2k
+-rw-r--r-- 1 benbusby 0 104915181204630000 1.y2k
 ```
+
+You could also include your raw Y2K file contents along with the 0-byte
+proof, to be extra thorough.
 
 - **Why doesn't Y2K have X feature?**
 
@@ -776,4 +574,4 @@ example program.
 The main thing that would help is trying to solve current or past code-golfing
 problems from https://codegolf.stackexchange.com. If there's a limitation in
 Y2K (there are definitely a ton) that prevents you from solving the problem,
-open an issue so that it can be addressed!
+open an issue or PR so that it can be addressed!

@@ -1,0 +1,11 @@
+# hello-world.y2k
+# This program prints the string "Hello World!"
+
+5 0 2 # Switch interpreter to 2-digit parsing size
+
+09 01 # Begin print string command
+
+34 05 12 12 15 00 # Print "Hello "
+49 15 18 12 04 63 # Print "World!"
+
+00 00 # End print command

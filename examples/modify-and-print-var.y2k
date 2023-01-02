@@ -1,0 +1,11 @@
+# modify-and-print-var.y2k
+# This program creates a variable 1 with the value 1500, subtracts 500
+# from the variable, and then prints the variable.
+
+8124 # Create new variable 1 with type int (2) and size 4
+1500 # Insert 4 digits (1500) into variable 1
+
+7123 # On variable 1, call function "-=" (2) with a 3-digit argument
+500  # Insert 3 digits (500) into function argument
+
+921  # Print variable 1

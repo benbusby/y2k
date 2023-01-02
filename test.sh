@@ -1,36 +1,34 @@
 #!/bin/sh
 
 SCRIPT_DIR="$(CDPATH= command cd -- "$(dirname -- "$0")" && pwd -P)"
+TEST_DIR="$SCRIPT_DIR/test-output"
 
 echo "- Building executable"
 go build
 
 echo "- Running tests"
-for dir in examples/*; do
-    cd "$SCRIPT_DIR"
+for example in examples/*; do
+    # Set up test directory for raw Y2K file exports
+    rm -rf "$TEST_DIR"
+    mkdir "$TEST_DIR"
 
-    if [ ! -d "$dir" ]; then
-        continue
-    fi
+    # Evaluate the expected output of a raw Y2K example file
+    expected="$(./y2k -raw $example 15)"
 
-    cd "$dir"
-    ./init.sh
+    # Export the raw file to a set of empty timestamp files
+    ./y2k -outdir $TEST_DIR -export $example >/dev/null
+    output="$(./y2k $TEST_DIR 15)"
 
-    cd "$SCRIPT_DIR"
-
-    # Test output with input arg 15
-    # (needed for n-terms fibonacci example)
-    output="$(./y2k "$dir" 15)"
-    expected="$(cat "$dir/test-output.txt")"
-
+    # Check if both outputs are equal
     if [ "$output" != "$expected" ]; then
-        echo "ERROR: $dir"
+        echo "ERROR: $example"
         echo "Expected: $expected"
         echo "Output: $output"
         exit 1
     else
-        echo "OK: $dir"
+        echo "OK: $example"
     fi
 done
 
 echo "All tests passed"
+rm -rf "$TEST_DIR"

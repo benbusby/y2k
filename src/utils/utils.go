@@ -14,6 +14,7 @@ var Printable = " abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
 	"1234567890" +
 	"!@#$%^&*()+-<>.,"
+var MaxTimestamp = int64(999999999999999999)
 var StrTerm = "  "
 var LoopTerm = "1999"
 var CondTerm = "2000"
@@ -28,10 +29,17 @@ func GetFileModTime(path string, zeroPad bool) string {
 		if zeroPad {
 			prefix = "0"
 		}
-		return fmt.Sprintf(prefix+"%d", info.ModTime().UnixNano())
+		timestamp := info.ModTime().UnixNano()
+		if timestamp > MaxTimestamp {
+			// File was created after the year 2000, which isn't possible,
+			// so let's ignore it
+			return ""
+		}
+
+		return fmt.Sprintf(prefix+"%d", timestamp)
 	}
 
-	return "00"
+	return ""
 }
 
 func GetCondTerm(loop bool) string {
@@ -108,7 +116,7 @@ func GetDirTimestamps(dir string, digits int) string {
 		// Append timestamp to slice
 		fullPath := filepath.Join(directoryPath, file.Name())
 		timestamp := GetFileModTime(fullPath, digits > 1)
-		if len(fullTimestamp) != 0 {
+		if len(fullTimestamp) != 0 && len(timestamp) > 0 {
 			// Snip off the leading digit for all timestamps except
 			// the first one. We do this to avoid issues with commands
 			// spanning across multiple files, where the next desired
@@ -119,4 +127,10 @@ func GetDirTimestamps(dir string, digits int) string {
 	}
 
 	return fullTimestamp
+}
+
+func check(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

@@ -1,0 +1,26 @@
+# fibonacci-n-terms.y2k
+# This program reads an integer command line argument and prints the
+# equivalent number of terms of the Fibonacci Sequence.
+# Command line arguments are added to the end of the variable map,
+# depending on the digit size of the parser (i.e. digit size 1 means
+# CLI args are inserted at 9 and descending, digit size 2 means 99,
+# etc).
+
+8121 # Create variable 1 with type int (2) and size 1
+0    # Insert 1 digit (0) into variable 1
+8221 # Create variable 2 with type int (2) and size 1
+1    # Insert 1 digit (1) into variable 2
+8321 # Create variable 3 with type int (2) and size 1
+0    # Insert 1 digit (0) into variable 3
+
+# Init while loop (while var 9 > 0)
+69311 # Create conditional using variable 9, with comparison ">" (3),
+      # as a loop (1), and with a right hand value size of 1
+0     # Insert 1 digit (0) into conditional's right hand value
+
+# Begin while loop
+    921 # Print var 9
+    73611 # var 3 = var 1
+    71612 # var 1 = var 2
+    72513 # var 2 += var 3
+    79211 # var 9 -= 1

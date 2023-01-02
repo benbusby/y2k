@@ -1,7 +1,8 @@
 # Unix timestamps aren't preserved in git, so no point in storing
 # y2k files
-*.y2k
+[0-9]*.y2k
 y2k
+y2k-out
 
 .idea
 out
