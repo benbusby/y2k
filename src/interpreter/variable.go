@@ -28,7 +28,7 @@ type Y2KVar struct {
 	ID     uint8
 	Type   Y2KVarType
 	Size   uint8
-	intVal int
+	numVal float64
 	strVal string
 }
 
@@ -40,7 +40,7 @@ func (y2kVar *Y2KVar) GetValue() string {
 	case Y2KString:
 		return y2kVar.strVal
 	case Y2KNumber:
-		return strconv.Itoa(y2kVar.intVal)
+		return utils.FloatToString(y2kVar.numVal)
 	}
 
 	return ""
@@ -89,7 +89,7 @@ func (y2k Y2K) FromCLIArg(input string) {
 		ID:     uint8(mapInd),
 		Size:   uint8(len(input)),
 		strVal: input,
-		intVal: utils.StrToInt(input),
+		numVal: utils.StrToFloat(input),
 		Type:   argType,
 	}
 }
@@ -127,11 +127,11 @@ func (y2k Y2K) ParseVariable(timestamp string, val reflect.Value) string {
 			copyVar := GetVar(uint8(utils.StrToInt(newVar.strVal)))
 			newVar.Type = copyVar.Type
 			newVar.Size = copyVar.Size
-			newVar.intVal = copyVar.intVal
+			newVar.numVal = copyVar.numVal
 			newVar.strVal = copyVar.strVal
 		} else {
 			// Init int value of variable
-			newVar.intVal = utils.StrToInt(newVar.strVal[:newVar.Size])
+			newVar.numVal = utils.StrToFloat(newVar.strVal[:newVar.Size])
 		}
 
 		// Insert finished variable into variable map

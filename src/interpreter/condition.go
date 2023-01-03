@@ -3,6 +3,7 @@ package interpreter
 import (
 	"fmt"
 	"github.com/benbusby/y2k/src/utils"
+	"math"
 	"reflect"
 	"strings"
 )
@@ -62,7 +63,7 @@ func EqualTo(y2kVar *Y2KVar, values []string) bool {
 	case Y2KString:
 		return y2kVar.strVal == utils.StrArrToPrintable(values)
 	case Y2KNumber:
-		return y2kVar.intVal == utils.StrArrToInt(values)
+		return y2kVar.numVal == utils.StrArrToFloat(values)
 	}
 
 	return false
@@ -75,7 +76,7 @@ func LessThan(y2kVar *Y2KVar, values []string) bool {
 	case Y2KString:
 		return len(y2kVar.strVal) < utils.StrArrToInt(values)
 	case Y2KNumber:
-		return y2kVar.intVal < utils.StrArrToInt(values)
+		return y2kVar.numVal < utils.StrArrToFloat(values)
 	}
 
 	return false
@@ -88,7 +89,7 @@ func GreaterThan(y2kVar *Y2KVar, values []string) bool {
 	case Y2KString:
 		return len(y2kVar.strVal) > utils.StrArrToInt(values)
 	case Y2KNumber:
-		return y2kVar.intVal > utils.StrArrToInt(values)
+		return y2kVar.numVal > utils.StrArrToFloat(values)
 	}
 
 	return false
@@ -102,7 +103,7 @@ func IsDivisible(y2kVar *Y2KVar, values []string) bool {
 	case Y2KString:
 		return true
 	case Y2KNumber:
-		return y2kVar.intVal%utils.StrArrToInt(values) == 0
+		return math.Mod(y2kVar.numVal, utils.StrArrToFloat(values)) == 0
 	}
 
 	return false

@@ -59,8 +59,30 @@ func StrToInt(input string) int {
 	return numVal
 }
 
+func StrToFloat(input string) float64 {
+	numVal, err := strconv.ParseFloat(input, 64)
+	if err != nil {
+		return 0
+	}
+
+	return numVal
+}
+
+func FloatToString(input float64) string {
+	return strconv.FormatFloat(input, 'f', -1, 64)
+}
+
 func StrArrToInt(input []string) int {
 	numVal, err := strconv.Atoi(strings.Join(input, ""))
+	if err != nil {
+		return 0
+	}
+
+	return numVal
+}
+
+func StrArrToFloat(input []string) float64 {
+	numVal, err := strconv.ParseFloat(strings.Join(input, ""), 64)
 	if err != nil {
 		return 0
 	}

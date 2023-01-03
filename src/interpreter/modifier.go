@@ -26,14 +26,14 @@ var modMap = map[uint8]func(*Y2KVar, []string){
 }
 
 // AddToVar directly modifies a variable by adding a second value to either its
-// intVal or strVal property (depending on variable data type).
+// numVal or strVal property (depending on variable data type).
 func AddToVar(y2kVar *Y2KVar, values []string) {
 	switch y2kVar.Type {
 	case Y2KString:
 		y2kVar.strVal += utils.StrArrToPrintable(values)
 		break
 	default:
-		y2kVar.intVal += utils.StrArrToInt(values)
+		y2kVar.numVal += utils.StrArrToFloat(values)
 		break
 	}
 }
@@ -44,7 +44,7 @@ func AddVarToVar(y2kVar *Y2KVar, values []string) {
 		y2kVar.strVal += GetVar(uint8(utils.StrArrToInt(values))).strVal
 		break
 	default:
-		y2kVar.intVal += GetVar(uint8(utils.StrArrToInt(values))).intVal
+		y2kVar.numVal += GetVar(uint8(utils.StrArrToInt(values))).numVal
 		break
 	}
 }
@@ -55,7 +55,7 @@ func CopyFromVar(y2kVar *Y2KVar, values []string) {
 		y2kVar.strVal = GetVar(uint8(utils.StrArrToInt(values))).strVal
 		break
 	default:
-		y2kVar.intVal = GetVar(uint8(utils.StrArrToInt(values))).intVal
+		y2kVar.numVal = GetVar(uint8(utils.StrArrToInt(values))).numVal
 		break
 	}
 }
@@ -64,13 +64,13 @@ func CopyFromVar(y2kVar *Y2KVar, values []string) {
 // For strings, this results in a substring from 0:length-N. For all other
 // variable types, this is regular subtraction.
 func SubtractFromVar(y2kVar *Y2KVar, values []string) {
-	intVal := utils.StrArrToInt(values)
 	switch y2kVar.Type {
 	case Y2KString:
+		intVal := utils.StrArrToInt(values)
 		y2kVar.strVal = y2kVar.strVal[0 : len(y2kVar.strVal)-intVal]
 		break
 	default:
-		y2kVar.intVal -= intVal
+		y2kVar.numVal -= utils.StrArrToFloat(values)
 		break
 	}
 }
@@ -81,14 +81,13 @@ func SubtractFromVar(y2kVar *Y2KVar, values []string) {
 // that in this case, val is always treated as a number, even for string
 // variables.
 func MultiplyVar(y2kVar *Y2KVar, values []string) {
-	intVal := utils.StrArrToInt(values)
-
 	switch y2kVar.Type {
 	case Y2KString:
+		intVal := utils.StrArrToInt(values)
 		y2kVar.strVal = strings.Repeat(y2kVar.strVal, intVal)
 		break
 	default:
-		y2kVar.intVal *= intVal
+		y2kVar.numVal *= utils.StrArrToFloat(values)
 		break
 	}
 }
@@ -107,7 +106,7 @@ func DivideVar(y2kVar *Y2KVar, values []string) {
 			"")
 		break
 	default:
-		y2kVar.intVal /= utils.StrArrToInt(values)
+		y2kVar.numVal /= utils.StrArrToFloat(values)
 		break
 	}
 }
