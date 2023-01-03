@@ -69,6 +69,10 @@ go build
   - Supported types: `var`, `string`
 - Debug mode
   - Outputs where/how each timestamp digit is being parsed
+- "Raw" file reading/writing
+  - Allows writing Y2K programs as file content (see [Examples](#examples)) and
+    exporting to a set of new 0-byte files with their timestamps modified,
+    rather than manually editing individual file timestamps.
 
 ## Usage
 
