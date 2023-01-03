@@ -17,10 +17,6 @@ func main() {
 		"debug",
 		false,
 		"Enable to view interpreter steps in console")
-	raw := flag.Bool(
-		"raw",
-		false,
-		"Enable to read a single Y2K file's contents, instead of timestamps")
 	export := flag.Bool(
 		"export",
 		false,
@@ -37,17 +33,15 @@ func main() {
 	for _, arg := range flag.Args() {
 		// Assume first argument is the directory or file to use for parsing
 		if len(timestamp) == 0 {
-			if *raw || *export {
+			if *export {
+				// If we're exporting, assume we're only reading raw Y2K file
+				// contents, and export to a set of empty files.
 				timestamp = utils.ReadY2KRawFile(arg)
 
-				// If we're exporting, skip parsing the timestamp and just
-				// write out the new files
-				if *export {
-					utils.ExportRawToTimestampFiles(timestamp, *outdir)
-					return
-				}
+				utils.ExportRawToTimestampFiles(timestamp, *outdir)
+				return
 			} else {
-				timestamp = utils.GetDirTimestamps(arg, *digits)
+				timestamp = utils.GetTimestamps(arg, *digits)
 			}
 			continue
 		}

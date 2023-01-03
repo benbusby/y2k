@@ -12,8 +12,8 @@ for example in examples/*; do
     rm -rf "$TEST_DIR"
     mkdir "$TEST_DIR"
 
-    # Evaluate the expected output of a raw Y2K example file
-    expected="$(./y2k -raw $example 15)"
+    # Evaluate the expected output of a Y2K example file
+    expected="$(./y2k $example 15)"
 
     # Export the raw file to a set of empty timestamp files
     ./y2k -outdir $TEST_DIR -export $example >/dev/null

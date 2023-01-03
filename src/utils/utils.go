@@ -89,13 +89,26 @@ func SplitStrByN(input string, n int) []string {
 	return output
 }
 
-func GetDirTimestamps(dir string, digits int) string {
+func GetFileTimestamp(file string, digits int) string {
+	// Check to see if this file is a timestamp-only file (which is the case
+	// if GetFileModTime finds a timestamp pre-2000) or if it's a "raw" file
+	fileModTime := GetFileModTime(file, digits > 1)
+
+	if len(fileModTime) > 0 {
+		return fileModTime
+	}
+
+	// File was made after 2000, so we can assume it's likely a raw file
+	return ReadY2KRawFile(file)
+}
+
+func GetTimestamps(dir string, digits int) string {
 	var fullTimestamp = ""
 	files, err := os.ReadDir(dir)
 
-	// Ensure the directory is actually valid before continuing
+	// If the input is not a directory, try reading it as a file
 	if err != nil {
-		panic(fmt.Sprintf("\"%s\" is not a valid directory", dir))
+		return GetFileTimestamp(dir, digits)
 	}
 
 	directoryPath, _ := filepath.Abs(dir)

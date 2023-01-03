@@ -85,27 +85,27 @@ Args:
   -outdir string
         Set the output directory for timestamp-only files when exporting a raw Y2K file.
         This directory will be created if it does not exist. (default "./y2k-out")
-  -raw
-        Enable to read a single Y2K file's contents, instead of timestamps
 ```
 
 ____
 
 ***Note:** See [CHEATSHEET.md](CHEATSHEET.md) for help with writing Y2K commands.*
 
-The simple way to write Y2K programs is to write all commands to a file (i.e.
-`set-and-print-var.y2k`) as file content and use the `-raw` flag to run the file.
+The simple way to write Y2K programs is to write all commands to a file as
+regular file content first.
+
 For example, from [the "Set and Print Variable" program](#set-and-print-variable):
 
 ```elixir
+# set-and-print-var.y2k
 8124 # Create new variable 1 with type int (2) and size 4
 1500 # Insert 4 digits (1500) into variable 1
 
-921 # Print variable 1
+921  # Print variable 1
 ```
 
 ```shell
-$ y2k -raw set-and-print-var.y2k
+$ y2k set-and-print-var.y2k
 1500
 ```
 
@@ -163,8 +163,8 @@ inform how the Y2K interpreter works.
 Each example below is taken directly from the [`examples`](examples) folder,
 but with added explanation for how/why they work.
 
-All examples need to be run with the `-raw` flag, but can be exported to
-0-byte solutions using the `-export` flag if desired.
+All examples can be exported to 0-byte solutions using the `-export` flag if
+desired.
 
 ### Set and Print Variable
 [`examples/set-and-print-var.y2k`](examples/set-and-print-var.y2k)
@@ -335,7 +335,7 @@ to "next", and 5) decrement counter.
     79211 # var 9 -= 1
 ```
 
-Output 1 (`y2k -raw examples/fibonacci-n-terms.y2k 15`):
+Output 1 (`y2k examples/fibonacci-n-terms.y2k 15`):
 
 ```
 0
@@ -355,7 +355,7 @@ Output 1 (`y2k -raw examples/fibonacci-n-terms.y2k 15`):
 377
 ```
 
-Output 2 (`y2k -raw examples/fibonacci-n-terms.y2k 20`):
+Output 2 (`y2k examples/fibonacci-n-terms.y2k 20`):
 
 ```
 0
