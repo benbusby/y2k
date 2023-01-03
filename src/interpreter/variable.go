@@ -54,14 +54,10 @@ func GetVar(id uint8) *Y2KVar {
 		return variable
 	}
 
-	// Alert the user if the variable they're attempting to use has not been set yet.
-	warnMsg := fmt.Sprintf("WARNING -- Variable [%d] does not exist!", id)
-	if id == 9 {
-		warnMsg += "\n(probably a command line argument...)"
-	}
-
-	fmt.Println(warnMsg)
-	return &Y2KVar{}
+	// If the variable has not been set yet, insert it now. We're assuming here
+	// that the variable will be an "int" (Y2KNumber) by default.
+	VarMap[id] = &Y2KVar{Type: Y2KNumber}
+	return VarMap[id]
 }
 
 // FromCLIArg takes a command line argument and turns it into a variable for the
