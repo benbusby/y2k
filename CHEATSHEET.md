@@ -118,6 +118,11 @@ would be assigned to those fields, for example.
           <li>3 --> <code>></code></li>
           <li>4 --> <code>Is evenly divisible by</code></li>
         </ul>
+        <li>Loop</li>
+        <ul>
+          <li>0 --> <code>if</code></li>
+          <li>1 --> <code>while</code></li>
+        </ul>
         <li>Argument Size</li>
       </ol>
     </td>
