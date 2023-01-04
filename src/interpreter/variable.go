@@ -17,6 +17,7 @@ type Y2KVarType uint8
 const (
 	Y2KString  Y2KVarType = 1
 	Y2KInt     Y2KVarType = 2
+	Y2KFloat   Y2KVarType = 3
 	Y2KVarCopy Y2KVarType = 9
 )
 
@@ -120,6 +121,8 @@ func (y2k Y2K) ParseVariable(timestamp string, val reflect.Value) string {
 	newVar.strVal += input
 
 	if len(newVar.strVal) >= int(newVar.Size) {
+		newVar.strVal = newVar.strVal[:newVar.Size]
+
 		if newVar.Type == Y2KVarCopy {
 			copyVar := GetVar(uint8(utils.StrToInt(newVar.strVal)))
 			newVar.Type = copyVar.Type
@@ -128,8 +131,15 @@ func (y2k Y2K) ParseVariable(timestamp string, val reflect.Value) string {
 			newVar.strVal = copyVar.strVal
 		} else {
 			// Init numeric value of variable
+			if newVar.Type == Y2KFloat {
+				// First digit of a float is where the decimal should be placed
+				decimalIndex := utils.StrToInt(newVar.strVal[0:1])
+				newVar.strVal = newVar.strVal[1:decimalIndex+1] +
+					"." +
+					newVar.strVal[decimalIndex+1:]
+			}
 
-			newVar.numVal = utils.StrToFloat(newVar.strVal[:newVar.Size])
+			newVar.numVal = utils.StrToFloat(newVar.strVal)
 		}
 
 		// Insert finished variable into variable map
