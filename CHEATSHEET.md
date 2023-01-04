@@ -82,6 +82,10 @@ would be assigned to those fields, for example.
         <ul>
           <li>1 --> String</li>
           <li>2 --> Integer</li>
+          <li>3 --> Float</li>
+          <ul>
+            <li>Size should be # digits + 1, with the first digit used for decimal placement. For example: <code>3.14</code> would require Size = 4, with the first digit set to <code>1</code>.</li>
+          </ul>
           <li>9 --> Copy</li>
         </ul>
         <li>Size</li>
