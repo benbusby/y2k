@@ -120,12 +120,13 @@ functionality as the raw file:
 ```shell
 $ y2k -export set-and-print-var.y2k
 Writing ./y2k-out/0.y2k -- 812415009210000000 (1995-09-29 16:50:09.21 -0600 MDT)
+
 $ ls ./y2k-out/*.y2k -lo --time-style="+%s%9N"
 -rw-r--r-- 1 benbusby 0 812415009210000000 ./y2k-out/0.y2k
 ```
 
-You can then pass the new output directory with `y2k` to verify that the program
-still functions the same, but with completely empty 0-byte files.
+Then you could pass the new output directory as input to `y2k`, and verify that
+the program still functions the same, but with completely empty 0-byte files.
 
 ```shell
 $ y2k ./y2k-out
@@ -195,7 +196,7 @@ console after setting it.
 8124 # Create new variable 1 with type int (2) and size 4
 1500 # Insert 4 digits (1500) into variable 1
 
-921 # Print variable 1
+921  # Print variable 1
 ```
 
 Output: `1500`
@@ -271,7 +272,7 @@ map, with descending IDs from there. So if you're running Y2K in the default
 starting at 9, then 8, and so on. As an example: `y2k my-program.y2k foo bar`
 would have variable 9 set to "foo" and variable 8 set to "bar".
 
-The other new(ish) concept is modifying a variable with the value from another
+The other new concept is modifying a variable with the value from another
 variable. In previous examples, we've used primitive types for arguments, but
 in this case we need to multiply our "Pi" variable (1) by our squared radius.
 To do this, we set the third field to "1" to tell the interpreter that the
@@ -279,14 +280,18 @@ value we're passing in is a variable ID, not a primitive type.
 
 ```elixir
 8139      # Set variable 1 to type float (3) and size 9
+
 131415926 # Insert 9 digits (131415926) into variable 1, using the first
-          #   digit (1) as the decimal placement (3.1415926)
-79501     # Modify variable 9 (CLI arg) using the "pow" function (5),
-          #   with a non-variable (0) argument size of 1
-2         # Use the number 2 as the function argument (var9**2)
+          # digit (1) as the decimal placement (3.1415926)
+
+79501     # Modify variable 9 (CLI arg) using the "**=" function (5),
+          # with a non-variable (0) argument size of 1
+2         # Use the number 2 as the function argument (var9 **= 2)
+
 71311     # Modify variable 1 using the "*=" function (3), with a
-          #   variable argument (1) with a variable ID size of 1
+          # variable argument (1) with a variable ID size of 1
 9         # Use the variable ID 9 in the function argument (var1 *= var9)
+
 921       # Print variable 1
 ```
 

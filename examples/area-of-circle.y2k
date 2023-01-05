@@ -4,11 +4,14 @@
 
 8139      # Set variable 1 to type float (3) and size 9
 131415926 # Insert 9 digits (131415926) into variable 1, using the first
-          #   digit (1) as the decimal placement (3.1415926)
-79501     # Modify variable 9 (CLI arg) using the "pow" function (5),
-          #   with a non-variable (0) argument size of 1
-2         # Use the number 2 as the function argument (var9**2)
+          # digit (1) as the decimal placement (3.1415926)
+
+79501     # Modify variable 9 (CLI arg) using the "**=" function (5),
+          # with a non-variable (0) argument size of 1
+2         # Use the number 2 as the function argument (var9 **= 2)
+
 71311     # Modify variable 1 using the "*=" function (3), with a
-          #   variable argument (1) with a variable ID size of 1
+          # variable argument (1) with a variable ID size of 1
 9         # Use the variable ID 9 in the function argument (var1 *= var9)
+
 921       # Print variable 1
