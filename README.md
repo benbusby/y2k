@@ -1,10 +1,9 @@
-<div align="center">
-  <img src="https://benbusby.com/assets/images/y2k.svg">
+[![Y2K Logo](https://benbusby.com/assets/images/y2k-box.png)](https://benbusby.com/assets/images/y2k-box.png)
 
-  [![MPL License](https://img.shields.io/github/license/benbusby/y2k)](LICENSE)
-  [![builds.sr.ht status](https://builds.sr.ht/~benbusby/y2k.svg)](https://builds.sr.ht/~benbusby/y2k?)
-  [![Go Report Card](https://goreportcard.com/badge/github.com/benbusby/y2k)](https://goreportcard.com/report/github.com/benbusby/y2k)
-</div>
+[![MPL License](https://img.shields.io/github/license/benbusby/y2k)](LICENSE)
+![GitHub release](https://img.shields.io/github/v/release/benbusby/y2k)
+[![builds.sr.ht status](https://builds.sr.ht/~benbusby/y2k.svg)](https://builds.sr.ht/~benbusby/y2k?)
+[![Go Report Card](https://goreportcard.com/badge/github.com/benbusby/y2k)](https://goreportcard.com/report/github.com/benbusby/y2k)
 
 ___
 
@@ -152,11 +151,22 @@ and the 0s needed to be at the beginning of the next file timestamp, this would
 only be possible if the timestamp was prefixed with a non-zero digit (otherwise
 leading 0s are ignored).
 
-After the timestamps have been concatenated into one long string, this string is
-passed into the top level `interpreter.Parse()` function, which will read in a
-command ID to determine which action to take. The interpreter will then parse the
-fields that pertain to that command, followed by the value (if applicable), before
-returning to parse the next command ID.
+After the timestamps have been concatenated into one long string, this string
+is passed into the top level `interpreter.Parse()` function, which will
+interpret the first digit as a command ID in order to determine which action to
+take. Command IDs are mapped to fields that are unique to that particular
+command, and the interpreter will use the next N-digits to parse out values for
+each of those fields. Some commands, such as setting and modifying variables,
+have a "Size" field which tells the interpreter how many digits following the
+command fields will be used to store/use a specific value. For instance, if you
+wanted to store the number 100 in a variable, you would use the "Create
+Variable" command ID, and the "Size" field for that command would be 3. The
+following 3 digits of the timestamp would be "100", and the interpreter would
+then read and store that 3-digit value in the variable.
+
+Once the interpreter finishes reading the command ID, the command fields, and
+any subsequent N-digit values (if applicable), it returns to the beginning to
+parse the next command ID.
 
 [CHEATSHEET.md](CHEATSHEET.md) contains a simplified breakdown of command IDs,
 command fields, and when values are needed for the different commands. Please also
