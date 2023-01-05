@@ -514,11 +514,10 @@ newlines are removed).
 The language was originally designed to interpret timestamps of any length, but
 both macOS and Go store Unix nanoseconds as an int64. The max value of an int64
 has 19 digits (`9223372036854775807`) but it wouldn't be reliable to write
-programs using all 19 digits, since ostensibly there could be programs that
-exceed this value fairly easily (a program to print the letter 'c' would start
-with `923...`, for example). As a result, all timestamps for Y2K programs have
-18 digits, which results in a maximum timestamp that falls around the year
-2000¹.
+programs using all 19 digits, since there can be programs that exceed this
+value fairly easily (a program to print the letter 'c' would start with
+`923...`, for example). As a result, all timestamps for Y2K programs have 18
+digits, which results in a maximum timestamp that falls around the year 2000¹.
 
 The interpreter was also originally designed to only ever read 2 digits at a time.
 These combined limitations reminded me of [the "Y2K
@@ -554,15 +553,15 @@ For example:
 # was used to create the loop is overwritten, and the
 # value of the original reference is never updated
 61213100 # While Var 1 < 100
-    72111 # Var 2 += 1
-    81912 # Overwrite Var 1 with Var 2 values
+    721101 # Var 2 += 1
+    81912  # Overwrite Var 1 with Var 2 values
 
 # GOOD
 # Loops as expected, Var 1's value is updated on each
 # iteration with Var 2's value
 61213100 # While Var 1 < 100
-    72111 # Var 2 += 1
-    71512 # Copy Var 2 value to Var 1
+    721101 # Var 2 += 1
+    719112 # Copy Var 2 value to Var 1
 ```
 
 - **How would I show proof of my solution in a code golf submission?**
