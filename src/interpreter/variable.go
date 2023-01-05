@@ -1,7 +1,6 @@
 package interpreter
 
 import (
-	"fmt"
 	"github.com/benbusby/y2k/src/utils"
 	"reflect"
 	"strconv"
@@ -111,9 +110,10 @@ func (y2k Y2K) ParseVariable(timestamp string, val reflect.Value) string {
 	newVar := val.Interface().(Y2KVar)
 	input := timestamp[:y2k.Digits]
 
-	y2k.DebugMsg(fmt.Sprintf("ParseVariable: [%s]%s",
+	y2k.DebugMsg("ParseVariable: [%s]%s",
 		input,
-		timestamp[y2k.Digits:]))
+		timestamp[y2k.Digits:],
+	)
 
 	// Regardless of data type, var values are created as a string first, in
 	// order to sequentially create the variable value across multiple passes

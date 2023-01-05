@@ -1,7 +1,6 @@
 package interpreter
 
 import (
-	"fmt"
 	"github.com/benbusby/y2k/src/utils"
 	"math"
 	"reflect"
@@ -109,9 +108,9 @@ func (y2k Y2K) ParseCondition(timestamp string, val reflect.Value) string {
 	y2kCond := val.Interface().(Y2KCond)
 
 	input := timestamp[:y2k.Digits]
-	y2k.DebugMsg(fmt.Sprintf("ParseCondition: [%s]%s",
+	y2k.DebugMsg("ParseCondition: [%s]%s",
 		input,
-		timestamp[y2k.Digits:]))
+		timestamp[y2k.Digits:])
 
 	y2kCond.value += input
 
