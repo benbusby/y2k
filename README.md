@@ -522,6 +522,16 @@ newlines are removed).
     922    # print var 2
 ```
 
+Output:
+```
+1
+2
+3
+4
+5
+...<continued until killed>...
+```
+
 ## FAQ
 
 - **Why the pre-2000 timestamp limitation? Why the name Y2K?**
