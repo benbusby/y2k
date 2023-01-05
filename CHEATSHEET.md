@@ -107,6 +107,11 @@ would be assigned to those fields, for example.
           <li>5 --> <code>+= other var value</code></li>
           <li>6 --> <code>Copy other var value</code></li>
         </ul>
+        <li>Argument Is Variable</li>
+        <ul>
+          <li>0 --> No</li>
+          <li>1 --> Yes (value will be treated as a variable ID)</li>
+        </ul>
         <li>Argument Size</li>
       </ol>
     </td>

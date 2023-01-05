@@ -93,7 +93,10 @@ func StrArrToFloat(input []string) float64 {
 func StrArrToPrintable(input []string) string {
 	output := ""
 	for _, val := range input {
-		output += string(Printable[StrToInt(val)])
+		index := StrToInt(val)
+		if index < len(Printable) {
+			output += string(Printable[index])
+		}
 	}
 
 	return output

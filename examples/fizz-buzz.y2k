@@ -15,10 +15,10 @@
 05 00 01 # Change interpreter back to 1-digit parsing mode
 
 # Set variable 7 to "fizzbuzz"
-8791 # Create variable 7 with type "copy" (9) and length 1 (variable ID length)
-9    # Use 1 digit variable ID (9) to copy values from var 9 to var 7
-7751 # On variable 7, call function "append var" (5) with a 1 digit argument
-8    # Use 1 digit variable ID (8) to append values from var 8 to var 7
+8791  # Create variable 7 with type "copy" (9) and length 1 (variable ID length)
+9     # Use 1 digit variable ID (9) to copy values from var 9 to var 7
+77111 # On variable 7, call function "+=" (5) using a variable (1) with a 1 digit ID
+8     # Use 1 digit variable ID (8) to append values from var 8 to var 7
 
 # Create variable 1 for iterating from 0 to 100
 8121 # Create variable 1 with type int (2) and size 1
@@ -26,7 +26,7 @@
 
 # Begin the loop from 0 to 100
 61213100 # while variable 1 < 100
-    71111 # var 1 += 1
+    711011 # var 1 += 1
     6140215 # if var 1 % 15 == 0
         927 # print var 7 ("fizzbuzz")
           4 # continue

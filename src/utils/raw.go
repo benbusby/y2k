@@ -65,7 +65,7 @@ func WriteFileTimestamp(timestamp string, path string, fileNum int) {
 	// Prepend a digit for all file timestamps after the first file. The reason
 	// for this is explained in the README.
 	if fileNum > 0 {
-		timestamp = "9" + timestamp
+		timestamp = "8" + timestamp
 	}
 
 	if len(timestamp) != 18 {

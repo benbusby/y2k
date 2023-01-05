@@ -20,7 +20,7 @@
 
 # Begin while loop
     921 # Print var 9
-    73611 # var 3 = var 1
-    71612 # var 1 = var 2
-    72513 # var 2 += var 3
-    79211 # var 9 -= 1
+    739111 # var 3 = var 1
+    719112 # var 1 = var 2
+    721113 # var 2 += var 3
+    792011 # var 9 -= 1

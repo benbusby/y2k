@@ -3,59 +3,39 @@ package interpreter
 import (
 	"fmt"
 	"github.com/benbusby/y2k/src/utils"
+	"math"
 	"reflect"
 	"strings"
 )
 
 type Y2KMod struct {
-	VarID   uint8
-	ModFn   uint8
-	ModSize uint8
-	value   string
+	VarID    uint8
+	ModFn    uint8
+	ArgIsVar bool
+	ModSize  uint8
+	value    string
 }
 
 // modMap holds an int->function mapping to match timestamp input
 // to the appropriate function to perform on the specified variable.
-var modMap = map[uint8]func(*Y2KVar, []string){
+var modMap = map[uint8]func(*Y2KVar, string, float64){
 	1: AddToVar,
 	2: SubtractFromVar,
 	3: MultiplyVar,
 	4: DivideVar,
-	5: AddVarToVar,
-	6: CopyFromVar,
+	5: PowVar,
+	9: SetVar,
 }
 
 // AddToVar directly modifies a variable by adding a second value to either its
 // numVal or strVal property (depending on variable data type).
-func AddToVar(y2kVar *Y2KVar, values []string) {
+func AddToVar(y2kVar *Y2KVar, strVal string, numVal float64) {
 	switch y2kVar.Type {
 	case Y2KString:
-		y2kVar.strVal += utils.StrArrToPrintable(values)
+		y2kVar.strVal += strVal
 		break
 	default:
-		y2kVar.numVal += utils.StrArrToFloat(values)
-		break
-	}
-}
-
-func AddVarToVar(y2kVar *Y2KVar, values []string) {
-	switch y2kVar.Type {
-	case Y2KString:
-		y2kVar.strVal += GetVar(uint8(utils.StrArrToInt(values))).strVal
-		break
-	default:
-		y2kVar.numVal += GetVar(uint8(utils.StrArrToInt(values))).numVal
-		break
-	}
-}
-
-func CopyFromVar(y2kVar *Y2KVar, values []string) {
-	switch y2kVar.Type {
-	case Y2KString:
-		y2kVar.strVal = GetVar(uint8(utils.StrArrToInt(values))).strVal
-		break
-	default:
-		y2kVar.numVal = GetVar(uint8(utils.StrArrToInt(values))).numVal
+		y2kVar.numVal += numVal
 		break
 	}
 }
@@ -63,14 +43,13 @@ func CopyFromVar(y2kVar *Y2KVar, values []string) {
 // SubtractFromVar modifies a variable by subtracting from the variable's value.
 // For strings, this results in a substring from 0:length-N. For all other
 // variable types, this is regular subtraction.
-func SubtractFromVar(y2kVar *Y2KVar, values []string) {
+func SubtractFromVar(y2kVar *Y2KVar, _ string, numVal float64) {
 	switch y2kVar.Type {
 	case Y2KString:
-		intVal := utils.StrArrToInt(values)
-		y2kVar.strVal = y2kVar.strVal[0 : len(y2kVar.strVal)-intVal]
+		y2kVar.strVal = y2kVar.strVal[0 : len(y2kVar.strVal)-int(numVal)]
 		break
 	default:
-		y2kVar.numVal -= utils.StrArrToFloat(values)
+		y2kVar.numVal -= numVal
 		break
 	}
 }
@@ -80,14 +59,13 @@ func SubtractFromVar(y2kVar *Y2KVar, values []string) {
 // times. For all other variable types, this is regular multiplication. Note
 // that in this case, val is always treated as a number, even for string
 // variables.
-func MultiplyVar(y2kVar *Y2KVar, values []string) {
+func MultiplyVar(y2kVar *Y2KVar, _ string, numVal float64) {
 	switch y2kVar.Type {
 	case Y2KString:
-		intVal := utils.StrArrToInt(values)
-		y2kVar.strVal = strings.Repeat(y2kVar.strVal, intVal)
+		y2kVar.strVal = strings.Repeat(y2kVar.strVal, int(numVal))
 		break
 	default:
-		y2kVar.numVal *= utils.StrArrToFloat(values)
+		y2kVar.numVal *= numVal
 		break
 	}
 }
@@ -97,16 +75,42 @@ func MultiplyVar(y2kVar *Y2KVar, values []string) {
 // this results in a string with all instances of the specified string removed.
 // For all other variable types, this is regular division.
 // out Example: "hello world!" / "o" -> "hell wrld!"
-func DivideVar(y2kVar *Y2KVar, values []string) {
+func DivideVar(y2kVar *Y2KVar, strVal string, numVal float64) {
 	switch y2kVar.Type {
 	case Y2KString:
 		y2kVar.strVal = strings.ReplaceAll(
 			y2kVar.strVal,
-			utils.StrArrToPrintable(values),
+			strVal,
 			"")
 		break
 	default:
-		y2kVar.numVal /= utils.StrArrToFloat(values)
+		y2kVar.numVal /= numVal
+		break
+	}
+}
+
+// PowVar returns the result of exponentiation with a variable's numeric
+// value as a base, and numVal input as the exponent.
+// This only applies to numeric variables -- string variables are ignored.
+func PowVar(y2kVar *Y2KVar, _ string, numVal float64) {
+	switch y2kVar.Type {
+	case Y2KString:
+		return
+	default:
+		y2kVar.numVal = math.Pow(y2kVar.numVal, numVal)
+	}
+}
+
+// SetVar overwrites a variable's value with the given input. Note that you
+// cannot overwrite a string variable with a numeric value. You would want
+// to create a new variable (command 8) with the new data type in that case.
+func SetVar(y2kVar *Y2KVar, strVal string, numVal float64) {
+	switch y2kVar.Type {
+	case Y2KString:
+		y2kVar.strVal = strVal
+		break
+	default:
+		y2kVar.numVal = numVal
 		break
 	}
 }
@@ -139,9 +143,21 @@ func (y2k Y2K) ParseModify(timestamp string, val reflect.Value) string {
 		// ("h" * 9 == "hhhhhhhhh").
 		targetVar := GetVar(varMod.VarID)
 		varMod.value = varMod.value[:varMod.ModSize]
-		modMap[varMod.ModFn](
-			targetVar,
-			utils.SplitStrByN(varMod.value, y2k.Digits))
+
+		// Retrieve the possible str and num values of the provided values
+		splitValue := utils.SplitStrByN(varMod.value, y2k.Digits)
+		strVal := utils.StrArrToPrintable(splitValue)
+		numVal := utils.StrArrToFloat(splitValue)
+
+		// If the user specified that the argument is a variable, use the
+		// provided input as a variable ID lookup and overwrite the values
+		// determined earlier
+		if varMod.ArgIsVar {
+			argVar := GetVar(uint8(utils.StrArrToInt(splitValue)))
+			strVal, numVal = argVar.GetValues()
+		}
+
+		modMap[varMod.ModFn](targetVar, strVal, numVal)
 
 		return timestamp
 	}

@@ -24,9 +24,10 @@ Contents
     1. [Set and Print Variable](#set-and-print-variable)
     2. [Modify Variable](#modify-and-print-variable)
     3. [Print "Hello World!"](#hello-world)
-    4. [Fibonacci I: Values < 2000](#fibonacci-i)
-    5. [Fibonacci II: N-terms](#fibonacci-ii)
+    4. [Area of a Circle](#area-of-a-circle)
+    5. [Fibonacci Sequence (N-terms)](#fibonacci-sequence)
     6. [Fizz Buzz](#fizz-buzz)
+    7. [Count Up Forever (Golf Hack)](#count-up-forever)
 6. [FAQ](#faq)
     1. [Why the pre-2000 timestamp limitation? Why the name Y2K?](#faq)
     2. [What does 0-byte actually mean? How can a program be 0 bytes?](#faq)
@@ -174,7 +175,7 @@ desired.
 [`examples/set-and-print-var.y2k`](examples/set-and-print-var.y2k)
 
 Timestamp(s):
-- `812415009.210000000` :: `1995-09-29 16:50:09.210000000`
+- `812415009210000000 (1995-09-29 16:50:09.210000000)`
 
 This expands on the example given in the "How It Works" section (setting
 variable "1" to the value 100) by also printing the variable out to the
@@ -193,29 +194,30 @@ Output: `1500`
 [`examples/modify-and-print-var.y2k`](examples/modify-and-print-var.y2k)
 
 Timestamp(s):
-- `812415007.123500921` :: `1995-09-29 16:50:07.123500921`
+- `812310071203500921 (1995-09-28 11:41:11.203500921)`
 
-This example takes an additional step after setting var "1" to 1500 by then
-subtracting 500 from that variable, and then printing var "1".
+This example is very similar to the previous example, only this time we're
+going to modify the variable after setting it. In this case, we set variable 1
+to the int value 100, then subtract 500 from that variable.
 
 ```elixir
-8124 # Create new variable 1 with type int (2) and size 4
-1500 # Insert 4 digits (1500) into variable 1
+8123  # Create new variable 1 with type int (2) and size 3
+100   # Insert 3 digits (100) into variable 1
 
-7123 # On variable 1, call function "-=" (2) with a 3-digit argument
-500  # Insert 3 digits (500) into function argument
+71203 # On variable 1, call function "-=" (2) with a primitive (0) 3-digit argument
+500   # Insert 3 digits (500) into function argument
 
-921  # Print variable 1
+921   # Print variable 1
 ```
 
-Output: `1000`
+Output: `-400`
 
 ### Hello World
 [`examples/hello-world.y2k`](examples/hello-world.y2k)
 
 Timestamp(s):
-- `502090134.051212150` :: `1985-11-28 22:28:54.051212150`
-- `X04915181.204630000` :: `1998-09-04 07:19:41.204630000`
+- `502090134051212150 (1985-11-28 22:28:54.05121215)`
+- `804915181204630000 (1995-07-04 21:33:01.20463000)`
 
 In this example, we're printing the string "Hello World!". Since character
 codes are easier to encapsulate with 2-digit codes, we need to switch the
@@ -238,78 +240,70 @@ we'll need "00 00" to tell the interpreter to stop printing the string.
 
 Output: `Hello World!`
 
-### Fibonacci I
-[`examples/fibonacci-lt-2000`](examples/fibonacci-lt-2000.y2k)
+### Area of a Circle
+[`examples/area-of-circle.y2k`](examples/area-of-circle.y2k)
 
 Timestamp(s):
-- `812108221.161214200` :: `1995-09-26 03:37:01.161214200`
-- `X09219227.151272511` :: `1998-10-24 02:53:47.151272511`
+- `813913141592679501 (1995-10-17 00:59:01.592679501)`
+- `827131199210000000 (1996-03-17 23:39:59.210000000)`
 
-For this first Fibonacci Sequence program, we're printing all values that are
-less than 2000. We're going to do something a little hacky in order to fit this
-solution into only 2 file timestamps. First we'll create two variables that
-will hold two values of the sequence at a time (starting with 0 and 1), then
-add them to each other until the lower of the two values is above 2000. This
-works since we know that an even number of terms is needed to reach `1597`, the
-highest Fibonacci number that is less than `2000`.
+In this example, we're introducing a couple of new concepts. One is the ability
+to include variables from the command line, and the other is modifying one
+variable using another variable's value.
 
-**Note:** For a more robust Fibonacci Sequence implementation, see [Fibonacci
-II](#fibonacci-ii).
+To include variable's from the command line, we simply pass the value after the
+input. For example, `y2k my-program.y2k 10` would include a variable with the
+value `10` that we can access from the beginning of the program. Since most Y2K
+programs create variables using sequential IDs (i.e. 0 -> 1 -> 2, etc),
+variables added from the command line are added to the back of the variable
+map, with descending IDs from there. So if you're running Y2K in the default
+1-digit parser mode, command line arguments are added as variables with IDs
+starting at 9, then 8, and so on. As an example: `y2k my-program.y2k foo bar`
+would have variable 9 set to "foo" and variable 8 set to "bar".
+
+The other new(ish) concept is modifying a variable with the value from another
+variable. In previous examples, we've used primitive types for arguments, but
+in this case we need to multiply our "Pi" variable (1) by our squared radius.
+To do this, we set the third field to "1" to tell the interpreter that the
+value we're passing in is a variable ID, not a primitive type.
 
 ```elixir
-8121 # Create variable 1 with type int (2) and size 1
-0    # Insert 1 digit (0) into variable 1
-8221 # Create variable 2 with type int (2) and size 1
-1    # Insert 1 digit (1) into variable 2
-
-# Init while loop (while var 1 < 2000)
-61214 # Create conditional using variable 1, with comparison "<" (2),
-      # as a loop (1), and with a right hand value size of 4
-2000  # Insert 4 digits (2000) into conditional's right hand value
-
-# Begin while loop
-    921 # Print variable 1
-    922 # Print variable 2
-    71512 # var 1 += var 2
-    72511 # var 2 += var 1
+8139      # Set variable 1 to type float (3) and size 9
+131415926 # Insert 9 digits (131415926) into variable 1, using the first
+          #   digit (1) as the decimal placement (3.1415926)
+79501     # Modify variable 9 (CLI arg) using the "pow" function (5),
+          #   with a non-variable (0) argument size of 1
+2         # Use the number 2 as the function argument (var9**2)
+71311     # Modify variable 1 using the "*=" function (3), with a
+          #   variable argument (1) with a variable ID size of 1
+9         # Use the variable ID 9 in the function argument (var1 *= var9)
+921       # Print variable 1
 ```
 
-Output:
+Output (`y2k examples/area-of-circle.y2k 10`):
 
 ```
-0
-1
-1
-2
-3
-5
-8
-13
-21
-34
-55
-89
-144
-233
-377
-610
-987
-1597
+314.15926
 ```
 
-### Fibonacci II
+Output (`y2k examples/area-of-circle.y2k 25`):
+
+```
+1963.495375
+```
+
+### Fibonacci Sequence
 [`examples/fibonacci-n-terms.y2k`](examples/fibonacci-n-terms.y2k)
 
 Timestamp(s):
-- `812108221.183210693` :: `1995-09-26 03:37:01.183210693`
-- `X11092173.611716127` :: `1998-11-14 18:09:33.611716127`
-- `X25137921.100000000` :: `1999-04-26 08:45:21.100000000`
+- `812108221183210693 (1995-09-26 03:37:01.183210693)`
+- `811092173911171911 (1995-09-14 09:22:53.911171911)`
+- `827211137920110000 (1996-03-18 21:52:17.920110000)`
 
 For this modification to the Fibonacci Sequence program, we're now using an
-argument from the command line as the number of terms to print. The logic
-from the previous solution can't be used, since it always prints 2 values
-at a time, so we need to update it. In the new program, we take the command
-line argument and create a new loop that decrements that value until it reaches 0.
+argument from the command line as the number of terms to print. In this new
+program, we'll take the command line argument and create a new loop that
+decrements that value until it reaches 0.
 
 We need 3 variables for this program, not including the variable added from the
 command line: a variable for the "current" value, a "placeholder" variable to
@@ -333,10 +327,10 @@ to "next", and 5) decrement counter.
 
 # Begin while loop
     921 # Print var 9
-    73611 # var 3 = var 1
-    71612 # var 1 = var 2
-    72513 # var 2 += var 3
-    79211 # var 9 -= 1
+    739111 # var 3 = var 1
+    719112 # var 1 = var 2
+    721113 # var 2 += var 3
+    792011 # var 9 -= 1
 ```
 
 Output 1 (`y2k examples/fibonacci-n-terms.y2k 15`):
@@ -388,13 +382,13 @@ Output 2 (`y2k examples/fibonacci-n-terms.y2k 20`):
 [`examples/fizz-buzz.y2k`](examples/fizz-buzz.y2k)
 
 Timestamp(s):
-- `502080901.040609262` :: `1985-11-28 19:55:01.040609262`
-- `X60808010.402212626` :: `1997-04-11 19:20:10.402212626`
-- `X05000187.319775188` :: `1995-07-05 21:09:47.319775188`
-- `X12106121.310071111` :: `1995-09-26 03:02:01.310071111`
-- `X61402159.274200061` :: `1997-04-18 16:22:39.274200061`
-- `X40139294.200061401` :: `1996-08-15 14:01:34.200061401`
-- `X59284200.009210000` :: `1997-03-25 03:03:20.009210000`
+- `502080901040609262 (1985-11-28 19:55:01.040609262)`
+- `860808010402212626 (1997-04-11 19:20:10.402212626)`
+- `805000187919771118 (1995-07-05 21:09:47.919771118)`
+- `881210612131007110 (1997-12-03 21:43:32.131007110)`
+- `811614021592742000 (1995-09-20 10:20:21.592742000)`
+- `861401392942000614 (1997-04-18 16:09:52.942000614)`
+- `801592842000921000 (1995-05-27 10:40:42.000921000)`
 
 The Fizz Buzz program highlights a few features that haven't been covered yet,
 namely terminating and "continue"-ing conditionals. We also have to tell the
@@ -424,10 +418,10 @@ continuing to the next part of the timestamp.
 05 00 01 # Change interpreter back to 1-digit parsing mode
 
 # Set variable 7 to "fizzbuzz"
-8791 # Create variable 7 with type "copy" (9) and length 1 (variable ID length)
-9    # Use 1 digit variable ID (9) to copy values from var 9 to var 7
-7751 # On variable 7, call function "append var" (5) with a 1 digit argument
-8    # Use 1 digit variable ID (8) to append values from var 8 to var 7
+8791  # Create variable 7 with type "copy" (9) and length 1 (variable ID length)
+9     # Use 1 digit variable ID (9) to copy values from var 9 to var 7
+77111 # On variable 7, call function "+=" (5) using a variable (1) with a 1 digit ID
+8     # Use 1 digit variable ID (8) to append values from var 8 to var 7
 
 # Create variable 1 for iterating from 0 to 100
 8121 # Create variable 1 with type int (2) and size 1
@@ -435,7 +429,7 @@ continuing to the next part of the timestamp.
 
 # Begin the loop from 0 to 100
 61213100 # while variable 1 < 100
-    71111 # var 1 += 1
+    711011 # var 1 += 1
     6140215 # if var 1 % 15 == 0
         927 # print var 7 ("fizzbuzz")
           4 # continue
@@ -484,6 +478,33 @@ fizz
 29
 fizzbuzz
 ...<continued>...
+```
+
+### Count Up Forever
+[`examples/count-up-forever.y2k`](examples/count-up-forever.y2k)
+
+Timestamp(s):
+- `611110721011922000 (1989-05-13 18:58:41.011922000)`
+
+*Originally from: https://codegolf.stackexchange.com/questions/63834/count-up-forever/*
+
+This program highlights a "hacky" feature that is included in Y2K, which is the ability
+to create new variables by referencing their IDs before they've been created. In this
+example, we create variable 1 through its reference in the while loop, and variable 2
+the first time that we try to modify it. When you do this, an "empty" variable is created
+without a specific type and a numeric value of 0.
+
+Creating variables this way isn't necessarily recommended, since it makes
+programs more difficult to read and can only be used for creating variables
+with a value of 0, but it can be a useful way to condense a solution into an
+even smaller footprint. In this case, we can fit the solution to the problem in
+a single file timestamp (and in raw format is only 15 bytes after comments and
+newlines are removed).
+
+```
+611110 # while var 1 == 0
+    721011 # var 2 += 1
+    922    # print var 2
 ```
 
 ## FAQ
