@@ -58,10 +58,8 @@ go build
 - Variable creation
   - Supported types: `int`, `float`, `string`
 - Variable modification
-  - Supported operations: `+=`, `-=`, `/=`, `*=`
-  - Also supported:
-    - Adding one variable's value to another
-    - Assigning one variable's value to another
+  - Supported operations: `+=`, `-=`, `/=`, `*=`, `**= (exponentiation)`, `= (overwrite)`
+  - Accepts primitive types (`int`, `float`, `string`) or variable IDs as arguments
 - Conditional logic
   - Supported types: `if`, `while`
   - Supported comparisons: `==`, `>`, `<`, and divisibility (`% N == 0`)
