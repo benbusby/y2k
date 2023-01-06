@@ -24,11 +24,11 @@ var commentChar = "#"
 func ReadY2KRawFile(file string) string {
 	timestamp := ""
 	raw, err := os.Open(file)
-	check(err)
+	Check(err)
 
 	defer func(raw *os.File) {
 		err := raw.Close()
-		check(err)
+		Check(err)
 	}(raw)
 
 	// Strip all whitespace and comments from file
@@ -57,10 +57,10 @@ func ReadY2KRawFile(file string) string {
 func WriteFileTimestamp(timestamp string, path string, fileNum int) {
 	filename := fmt.Sprintf("%s/%d.y2k", path, fileNum)
 	file, err := os.Create(filename)
-	check(err)
+	Check(err)
 
 	err = file.Close()
-	check(err)
+	Check(err)
 
 	// Prepend a digit for all file timestamps after the first file. The reason
 	// for this is explained in the README.
@@ -77,7 +77,7 @@ func WriteFileTimestamp(timestamp string, path string, fileNum int) {
 	fmt.Println(fmt.Sprintf("Writing %s -- %s (%s)", filename, timestamp, fileTime))
 
 	err = os.Chtimes(filename, fileTime, fileTime)
-	check(err)
+	Check(err)
 }
 
 // ExportRawToTimestampFiles takes the timestamp created from a raw Y2K file
@@ -89,7 +89,7 @@ func ExportRawToTimestampFiles(timestamp string, path string) {
 	// Ensure path exists, and create it if not
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
 		err := os.Mkdir(path, os.ModePerm)
-		check(err)
+		Check(err)
 	}
 
 	for len(timestamp) > 0 {

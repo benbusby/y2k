@@ -167,7 +167,7 @@ func GetTimestamps(dir string, digits int) string {
 	return fullTimestamp
 }
 
-func check(err error) {
+func Check(err error) {
 	if err != nil {
 		panic(err)
 	}

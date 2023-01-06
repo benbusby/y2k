@@ -30,8 +30,7 @@ const (
 )
 
 var instMap map[Y2KCommand]Instruction
-
-var STDOUT = bufio.NewWriterSize(os.Stdout, 4096)
+var stdout = bufio.NewWriter(os.Stdout)
 
 // CreateStruct uses reflection to form a struct from N-sized chunks
 // from the timestamp. The struct that is constructed is mapped to
@@ -111,10 +110,14 @@ func (y2k Y2K) DebugMsg(template string, input ...string) {
 // OutputMsg uses a buffered stdout writer to output messages from Y2K. It's
 // slightly more performant than fmt.Println.
 func (y2k Y2K) OutputMsg(msg string) {
-	_, err := fmt.Fprintln(STDOUT, msg)
-	if err != nil {
-		fmt.Println(err)
-	}
+	defer func(stdout *bufio.Writer) {
+		err := stdout.Flush()
+		utils.Check(err)
+	}(stdout)
+
+	_, err := stdout.WriteString(msg)
+	_, err = stdout.WriteString("\n")
+	utils.Check(err)
 }
 
 // Parse manages interpreter state and hands off timestamp parsing to the
