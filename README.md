@@ -1,4 +1,4 @@
-[![Y2K Logo](https://benbusby.com/assets/images/y2k-box.png)](https://benbusby.com/assets/images/y2k-box.png)
+[![Y2K Logo](https://benbusby.com/assets/images/y2k-logo.jpeg)](https://benbusby.com/assets/images/y2k-logo.jpeg)
 
 [![MPL License](https://img.shields.io/github/license/benbusby/y2k)](LICENSE)
 ![GitHub release](https://img.shields.io/github/v/release/benbusby/y2k)
@@ -499,7 +499,8 @@ fizzbuzz
 Timestamp(s):
 - `611110721011922000 (1989-05-13 18:58:41.011922000)`
 
-*Originally from: https://codegolf.stackexchange.com/questions/63834/count-up-forever/*
+*Originally from [this problem on
+codegolf.stackexchange.com](https://codegolf.stackexchange.com/questions/63834/count-up-forever/)*
 
 This program highlights a "hacky" feature that is included in Y2K, which is the ability
 to create new variables by referencing their IDs before they've been created. In this
