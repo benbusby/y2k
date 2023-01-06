@@ -56,7 +56,7 @@ go build
 ## Features
 
 - Variable creation
-  - Supported types: `int`, `string`
+  - Supported types: `int`, `float`, `string`
 - Variable modification
   - Supported operations: `+=`, `-=`, `/=`, `*=`
   - Also supported:

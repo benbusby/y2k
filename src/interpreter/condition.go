@@ -3,6 +3,7 @@ package interpreter
 import (
 	"fmt"
 	"github.com/benbusby/y2k/src/utils"
+	"math"
 	"reflect"
 	"strings"
 )
@@ -61,11 +62,9 @@ func EqualTo(y2kVar *Y2KVar, values []string) bool {
 	switch y2kVar.Type {
 	case Y2KString:
 		return y2kVar.strVal == utils.StrArrToPrintable(values)
-	case Y2KNumber:
-		return y2kVar.intVal == utils.StrArrToInt(values)
+	default:
+		return y2kVar.numVal == utils.StrArrToFloat(values)
 	}
-
-	return false
 }
 
 // LessThan checks if a string's length is less than the specified value,
@@ -74,11 +73,9 @@ func LessThan(y2kVar *Y2KVar, values []string) bool {
 	switch y2kVar.Type {
 	case Y2KString:
 		return len(y2kVar.strVal) < utils.StrArrToInt(values)
-	case Y2KNumber:
-		return y2kVar.intVal < utils.StrArrToInt(values)
+	default:
+		return y2kVar.numVal < utils.StrArrToFloat(values)
 	}
-
-	return false
 }
 
 // GreaterThan checks if a string's length is greater than the specified value,
@@ -87,11 +84,9 @@ func GreaterThan(y2kVar *Y2KVar, values []string) bool {
 	switch y2kVar.Type {
 	case Y2KString:
 		return len(y2kVar.strVal) > utils.StrArrToInt(values)
-	case Y2KNumber:
-		return y2kVar.intVal > utils.StrArrToInt(values)
+	default:
+		return y2kVar.numVal > utils.StrArrToFloat(values)
 	}
-
-	return false
 }
 
 // IsDivisible checks if a numeric variable is evenly divisible by a
@@ -101,11 +96,9 @@ func IsDivisible(y2kVar *Y2KVar, values []string) bool {
 	switch y2kVar.Type {
 	case Y2KString:
 		return true
-	case Y2KNumber:
-		return y2kVar.intVal%utils.StrArrToInt(values) == 0
+	default:
+		return math.Mod(y2kVar.numVal, utils.StrArrToFloat(values)) == 0
 	}
-
-	return false
 }
 
 // ParseCondition compares a variable against a raw value and parses a segment of

@@ -16,7 +16,8 @@ type Y2KVarType uint8
 
 const (
 	Y2KString  Y2KVarType = 1
-	Y2KNumber  Y2KVarType = 2
+	Y2KInt     Y2KVarType = 2
+	Y2KFloat   Y2KVarType = 3
 	Y2KVarCopy Y2KVarType = 9
 )
 
@@ -28,8 +29,8 @@ type Y2KVar struct {
 	ID     uint8
 	Type   Y2KVarType
 	Size   uint8
-	intVal int
 	strVal string
+	numVal float64
 }
 
 // GetValue returns the appropriate value for a particular variable. If it's a
@@ -39,11 +40,9 @@ func (y2kVar *Y2KVar) GetValue() string {
 	switch y2kVar.Type {
 	case Y2KString:
 		return y2kVar.strVal
-	case Y2KNumber:
-		return strconv.Itoa(y2kVar.intVal)
+	default:
+		return utils.FloatToString(y2kVar.numVal)
 	}
-
-	return ""
 }
 
 // GetVar retrieves a variable from the existing ID->var map,
@@ -54,9 +53,8 @@ func GetVar(id uint8) *Y2KVar {
 		return variable
 	}
 
-	// If the variable has not been set yet, insert it now. We're assuming here
-	// that the variable will be an "int" (Y2KNumber) by default.
-	VarMap[id] = &Y2KVar{Type: Y2KNumber}
+	// If the variable has not been set yet, insert it now.
+	VarMap[id] = &Y2KVar{}
 	return VarMap[id]
 }
 
@@ -68,7 +66,7 @@ func (y2k Y2K) FromCLIArg(input string) {
 	// Determine if the argument is a string or numeric.
 	// Assume the variable is numeric, unless a non-numeric other than '.' is
 	// found.
-	argType := Y2KNumber
+	argType := Y2KInt
 	for _, c := range input {
 		if unicode.IsLetter(c) && c != '.' {
 			argType = Y2KString
@@ -89,7 +87,7 @@ func (y2k Y2K) FromCLIArg(input string) {
 		ID:     uint8(mapInd),
 		Size:   uint8(len(input)),
 		strVal: input,
-		intVal: utils.StrToInt(input),
+		numVal: utils.StrToFloat(input),
 		Type:   argType,
 	}
 }
@@ -123,15 +121,25 @@ func (y2k Y2K) ParseVariable(timestamp string, val reflect.Value) string {
 	newVar.strVal += input
 
 	if len(newVar.strVal) >= int(newVar.Size) {
+		newVar.strVal = newVar.strVal[:newVar.Size]
+
 		if newVar.Type == Y2KVarCopy {
 			copyVar := GetVar(uint8(utils.StrToInt(newVar.strVal)))
 			newVar.Type = copyVar.Type
 			newVar.Size = copyVar.Size
-			newVar.intVal = copyVar.intVal
+			newVar.numVal = copyVar.numVal
 			newVar.strVal = copyVar.strVal
 		} else {
-			// Init int value of variable
-			newVar.intVal = utils.StrToInt(newVar.strVal[:newVar.Size])
+			// Init numeric value of variable
+			if newVar.Type == Y2KFloat {
+				// First digit of a float is where the decimal should be placed
+				decimalIndex := utils.StrToInt(newVar.strVal[0:1])
+				newVar.strVal = newVar.strVal[1:decimalIndex+1] +
+					"." +
+					newVar.strVal[decimalIndex+1:]
+			}
+
+			newVar.numVal = utils.StrToFloat(newVar.strVal)
 		}
 
 		// Insert finished variable into variable map
