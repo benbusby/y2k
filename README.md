@@ -1,10 +1,9 @@
-<div align="center">
-  <img src="https://benbusby.com/assets/images/y2k.svg">
+[![Y2K Logo](https://benbusby.com/assets/images/y2k-box.png)](https://benbusby.com/assets/images/y2k-box.png)
 
-  [![MPL License](https://img.shields.io/github/license/benbusby/y2k)](LICENSE)
-  [![builds.sr.ht status](https://builds.sr.ht/~benbusby/y2k.svg)](https://builds.sr.ht/~benbusby/y2k?)
-  [![Go Report Card](https://goreportcard.com/badge/github.com/benbusby/y2k)](https://goreportcard.com/report/github.com/benbusby/y2k)
-</div>
+[![MPL License](https://img.shields.io/github/license/benbusby/y2k)](LICENSE)
+![GitHub release](https://img.shields.io/github/v/release/benbusby/y2k)
+[![builds.sr.ht status](https://builds.sr.ht/~benbusby/y2k.svg)](https://builds.sr.ht/~benbusby/y2k?)
+[![Go Report Card](https://goreportcard.com/badge/github.com/benbusby/y2k)](https://goreportcard.com/report/github.com/benbusby/y2k)
 
 ___
 
@@ -59,10 +58,8 @@ go build
 - Variable creation
   - Supported types: `int`, `float`, `string`
 - Variable modification
-  - Supported operations: `+=`, `-=`, `/=`, `*=`
-  - Also supported:
-    - Adding one variable's value to another
-    - Assigning one variable's value to another
+  - Supported operations: `+=`, `-=`, `/=`, `*=`, `**= (exponentiation)`, `= (overwrite)`
+  - Accepts primitive types (`int`, `float`, `string`) or variable IDs as arguments
 - Conditional logic
   - Supported types: `if`, `while`
   - Supported comparisons: `==`, `>`, `<`, and divisibility (`% N == 0`)
@@ -121,12 +118,13 @@ functionality as the raw file:
 ```shell
 $ y2k -export set-and-print-var.y2k
 Writing ./y2k-out/0.y2k -- 812415009210000000 (1995-09-29 16:50:09.21 -0600 MDT)
+
 $ ls ./y2k-out/*.y2k -lo --time-style="+%s%9N"
 -rw-r--r-- 1 benbusby 0 812415009210000000 ./y2k-out/0.y2k
 ```
 
-You can then pass the new output directory with `y2k` to verify that the program
-still functions the same, but with completely empty 0-byte files.
+Then you could pass the new output directory as input to `y2k`, and verify that
+the program still functions the same, but with completely empty 0-byte files.
 
 ```shell
 $ y2k ./y2k-out
@@ -152,11 +150,22 @@ and the 0s needed to be at the beginning of the next file timestamp, this would
 only be possible if the timestamp was prefixed with a non-zero digit (otherwise
 leading 0s are ignored).
 
-After the timestamps have been concatenated into one long string, this string is
-passed into the top level `interpreter.Parse()` function, which will read in a
-command ID to determine which action to take. The interpreter will then parse the
-fields that pertain to that command, followed by the value (if applicable), before
-returning to parse the next command ID.
+After the timestamps have been concatenated into one long string, this string
+is passed into the top level `interpreter.Parse()` function, which will
+interpret the first digit as a command ID in order to determine which action to
+take. Command IDs are mapped to fields that are unique to that particular
+command, and the interpreter will use the next N-digits to parse out values for
+each of those fields. Some commands, such as setting and modifying variables,
+have a "Size" field which tells the interpreter how many digits following the
+command fields will be used to store/use a specific value. For instance, if you
+wanted to store the number 100 in a variable, you would use the "Create
+Variable" command ID, and the "Size" field for that command would be 3. The
+following 3 digits of the timestamp would be "100", and the interpreter would
+then read and store that 3-digit value in the variable.
+
+Once the interpreter finishes reading the command ID, the command fields, and
+any subsequent N-digit values (if applicable), it returns to the beginning to
+parse the next command ID.
 
 [CHEATSHEET.md](CHEATSHEET.md) contains a simplified breakdown of command IDs,
 command fields, and when values are needed for the different commands. Please also
@@ -185,7 +194,7 @@ console after setting it.
 8124 # Create new variable 1 with type int (2) and size 4
 1500 # Insert 4 digits (1500) into variable 1
 
-921 # Print variable 1
+921  # Print variable 1
 ```
 
 Output: `1500`
@@ -261,7 +270,7 @@ map, with descending IDs from there. So if you're running Y2K in the default
 starting at 9, then 8, and so on. As an example: `y2k my-program.y2k foo bar`
 would have variable 9 set to "foo" and variable 8 set to "bar".
 
-The other new(ish) concept is modifying a variable with the value from another
+The other new concept is modifying a variable with the value from another
 variable. In previous examples, we've used primitive types for arguments, but
 in this case we need to multiply our "Pi" variable (1) by our squared radius.
 To do this, we set the third field to "1" to tell the interpreter that the
@@ -269,14 +278,18 @@ value we're passing in is a variable ID, not a primitive type.
 
 ```elixir
 8139      # Set variable 1 to type float (3) and size 9
+
 131415926 # Insert 9 digits (131415926) into variable 1, using the first
-          #   digit (1) as the decimal placement (3.1415926)
-79501     # Modify variable 9 (CLI arg) using the "pow" function (5),
-          #   with a non-variable (0) argument size of 1
-2         # Use the number 2 as the function argument (var9**2)
+          # digit (1) as the decimal placement (3.1415926)
+
+79501     # Modify variable 9 (CLI arg) using the "**=" function (5),
+          # with a non-variable (0) argument size of 1
+2         # Use the number 2 as the function argument (var9 **= 2)
+
 71311     # Modify variable 1 using the "*=" function (3), with a
-          #   variable argument (1) with a variable ID size of 1
+          # variable argument (1) with a variable ID size of 1
 9         # Use the variable ID 9 in the function argument (var1 *= var9)
+
 921       # Print variable 1
 ```
 
@@ -505,6 +518,16 @@ newlines are removed).
 611110 # while var 1 == 0
     721011 # var 2 += 1
     922    # print var 2
+```
+
+Output:
+```
+1
+2
+3
+4
+5
+...<continued until killed>...
 ```
 
 ## FAQ

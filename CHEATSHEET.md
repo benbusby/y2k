@@ -104,8 +104,8 @@ would be assigned to those fields, for example.
           <li>2 --> <code>-=</code></li>
           <li>3 --> <code>*=</code></li>
           <li>4 --> <code>/=</code></li>
-          <li>5 --> <code>+= other var value</code></li>
-          <li>6 --> <code>Copy other var value</code></li>
+          <li>5 --> <code>**= (exponentiation)</code></li>
+          <li>9 --> <code>=</code></li>
         </ul>
         <li>Argument Is Variable</li>
         <ul>

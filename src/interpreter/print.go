@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/benbusby/y2k/src/utils"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -24,15 +25,16 @@ func (y2k Y2K) ParsePrint(timestamp string, val reflect.Value) string {
 	y2kPrint := val.Interface().(Y2KPrint)
 
 	input := utils.StrToInt(timestamp[:y2k.Digits])
-	y2k.DebugMsg(fmt.Sprintf("ParsePrint: [%d]%s",
-		input,
-		timestamp[y2k.Digits:]))
+	y2k.DebugMsg("ParsePrint: [%s]%s",
+		timestamp[:y2k.Digits],
+		timestamp[y2k.Digits:],
+	)
 
 	// If we're printing a variable, the next input will be the variable ID.
 	// We can use that to print the variable value and return the timestamp
 	// back to the caller.
 	if y2kPrint.Type == Y2KPrintVar {
-		y2k.DebugMsg(fmt.Sprintf("Print Var[%d]", input))
+		y2k.DebugMsg("Print Var[%s]", strconv.Itoa(input))
 		variable := GetVar(uint8(input))
 		y2k.OutputMsg(variable.GetValue())
 
