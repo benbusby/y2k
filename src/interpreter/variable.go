@@ -45,6 +45,11 @@ func (y2kVar *Y2KVar) GetValue() string {
 	}
 }
 
+// GetValues returns both strVal and numVal of a variable.
+func (y2kVar *Y2KVar) GetValues() (string, float64) {
+	return y2kVar.strVal, y2kVar.numVal
+}
+
 // GetVar retrieves a variable from the existing ID->var map,
 // or returns an empty version of the variable struct if the
 // request var id has not been set.

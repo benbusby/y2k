@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -e
+
+SKIP_TEST="SKIP_TEST"
 SCRIPT_DIR="$(CDPATH= command cd -- "$(dirname -- "$0")" && pwd -P)"
 TEST_DIR="$SCRIPT_DIR/test-output"
 
@@ -11,6 +14,12 @@ for example in examples/*; do
     # Set up test directory for raw Y2K file exports
     rm -rf "$TEST_DIR"
     mkdir "$TEST_DIR"
+
+    # Skip tests that are contain the SKIP_TEST string.
+    # This is done for examples like "count-up-forever.y2k"
+    if grep -q $SKIP_TEST $example; then
+        continue
+    fi
 
     # Evaluate the expected output of a Y2K example file
     expected="$(./y2k $example 15)"
