@@ -213,7 +213,7 @@ value (`1999`) and subtracting `4` from it to get `1995`.
 1999  # Insert 3 digits (100) into variable 1
 
 71201 # On variable 1, call function "-=" (2) with a primitive (0) 1-digit argument
-4     # Insert 1 digits (4) into function argument
+4     # Insert 1 digit (4) into function argument
 
 9211  # Print variable 1
 ```
