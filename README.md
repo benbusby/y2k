@@ -101,14 +101,14 @@ For example, from [the "Set and Print Variable" program](#set-and-print-variable
 ```elixir
 # set-and-print-var.y2k
 8124 # Create new variable 1 with type int (2) and size 4
-1500 # Insert 4 digits (1500) into variable 1
+1999 # Insert 4 digits (1999) into variable 1
 
-921  # Print variable 1
+9211 # Print variable 1
 ```
 
 ```shell
 $ y2k set-and-print-var.y2k
-1500
+1999
 ```
 
 You can then export this file to a set of empty 0-byte files (or in this
@@ -128,7 +128,7 @@ the program still functions the same, but with completely empty 0-byte files.
 
 ```shell
 $ y2k ./y2k-out
-1500
+1999
 ```
 
 See [Examples](#examples) for more detailed breakdowns of current example programs.
@@ -183,68 +183,62 @@ desired.
 ### Set and Print Variable
 [`examples/set-and-print-var.y2k`](examples/set-and-print-var.y2k)
 
-Timestamp(s):
-- `812415009210000000 (1995-09-29 16:50:09.210000000)`
+Timestamp:
+- `812419999211000000 (1995-09-29 18:13:19.211000000)`
 
-This expands on the example given in the "How It Works" section (setting
-variable "1" to the value 100) by also printing the variable out to the
-console after setting it.
+This example simply sets an integer variable to the value `1500` and then
+prints that variable to the console.
 
 ```elixir
 8124 # Create new variable 1 with type int (2) and size 4
-1500 # Insert 4 digits (1500) into variable 1
+1999 # Insert 4 digits (1999) into variable 1
 
-921  # Print variable 1
+9211 # Print variable 1
 ```
 
-Output: `1500`
+Output: `1999`
 
 ### Modify and Print Variable
 [`examples/modify-and-print-var.y2k`](examples/modify-and-print-var.y2k)
 
-Timestamp(s):
-- `812310071203500921 (1995-09-28 11:41:11.203500921)`
+Timestamp:
+- `812419997120149211 (1995-09-29 18:13:17.120149211)`
 
-This example is very similar to the previous example, only this time we're
-going to modify the variable after setting it. In this case, we set variable 1
-to the int value 100, then subtract 500 from that variable.
+This example expands on the previous example by modifying the variable's
+value after creating it. In this case, we're taking the original variable
+value (`1999`) and subtracting `4` from it to get `1995`.
 
 ```elixir
-8123  # Create new variable 1 with type int (2) and size 3
-100   # Insert 3 digits (100) into variable 1
+8124  # Create new variable 1 with type int (2) and size 3
+1999  # Insert 3 digits (100) into variable 1
 
-71203 # On variable 1, call function "-=" (2) with a primitive (0) 3-digit argument
-500   # Insert 3 digits (500) into function argument
+71201 # On variable 1, call function "-=" (2) with a primitive (0) 1-digit argument
+4     # Insert 1 digits (4) into function argument
 
-921   # Print variable 1
+9211  # Print variable 1
 ```
 
-Output: `-400`
+Output: `1995`
 
 ### Hello World
 [`examples/hello-world.y2k`](examples/hello-world.y2k)
 
 Timestamp(s):
-- `502090134051212150 (1985-11-28 22:28:54.05121215)`
-- `804915181204630000 (1995-07-04 21:33:01.20463000)`
+- `502090112340512121 (1985-11-28 22:28:32.340512121)`
+- `850049151812046300 (1996-12-08 05:45:51.812046300)`
 
 In this example, we're printing the string "Hello World!". Since character
-codes are easier to encapsulate with 2-digit codes, we need to switch the
-interpreter to 2-digit parsing mode at the very beginning.
-
-As seen at the end of the explanation below, print strings are terminated using
-two space ("0") characters * N-digit parsing size. So for 2-digit parsing,
-we'll need "00 00" to tell the interpreter to stop printing the string.
+codes are easier to encapsulate with 2-digit codes (and the string we're
+printing is a 2-digit number), we need to switch the interpreter to 2-digit
+parsing mode at the very beginning.
 
 ```elixir
-502 # Switch interpreter to 2-digit parsing size
+5 0 2 # Switch interpreter to 2-digit parsing size
 
-09 01 # Begin print string command
+09 01 12 # Begin printing a string with a size of 12
 
-34 05 12 12 15 00 # Print "Hello "
-49 15 18 12 04 63 # Print "World!"
-
-00 00 # End print command
+34 05 12 12 15 00 # Write "Hello "
+49 15 18 12 04 63 # Write "World!"
 ```
 
 Output: `Hello World!`
@@ -254,7 +248,7 @@ Output: `Hello World!`
 
 Timestamp(s):
 - `813913141592679501 (1995-10-17 00:59:01.592679501)`
-- `827131199210000000 (1996-03-17 23:39:59.210000000)`
+- `827131199211000000 (1996-03-17 23:39:59.211000000)`
 
 In this example, we're introducing a couple of new concepts. One is the ability
 to include variables from the command line, and the other is modifying one
@@ -290,7 +284,7 @@ value we're passing in is a variable ID, not a primitive type.
           # variable argument (1) with a variable ID size of 1
 9         # Use the variable ID 9 in the function argument (var1 *= var9)
 
-921       # Print variable 1
+9211      # Print variable 1
 ```
 
 Output (`y2k examples/area-of-circle.y2k 10`):
@@ -310,8 +304,8 @@ Output (`y2k examples/area-of-circle.y2k 25`):
 
 Timestamp(s):
 - `812108221183210693 (1995-09-26 03:37:01.183210693)`
-- `811092173911171911 (1995-09-14 09:22:53.911171911)`
-- `827211137920110000 (1996-03-18 21:52:17.920110000)`
+- `811092117391117191 (1995-09-14 09:21:57.391117191)`
+- `812721113792011000 (1995-10-03 05:51:53.792011000)`
 
 For this modification to the Fibonacci Sequence program, we're now using an
 argument from the command line as the number of terms to print. In this new
@@ -339,7 +333,7 @@ to "next", and 5) decrement counter.
 0     # Insert 1 digit (0) into conditional's right hand value
 
 # Begin while loop
-    921 # Print var 9
+    9211 # Print var 9
     739111 # var 3 = var 1
     719112 # var 1 = var 2
     721113 # var 2 += var 3
@@ -395,13 +389,13 @@ Output 2 (`y2k examples/fibonacci-n-terms.y2k 20`):
 [`examples/fizz-buzz.y2k`](examples/fizz-buzz.y2k)
 
 Timestamp(s):
-- `502080901040609262 (1985-11-28 19:55:01.040609262)`
-- `860808010402212626 (1997-04-11 19:20:10.402212626)`
+- `502080901043209262 (1985-11-28 19:55:01.043209262)`
+- `860808010428212626 (1997-04-11 19:20:10.428212626)`
 - `805000187919771118 (1995-07-05 21:09:47.919771118)`
-- `881210612131007110 (1997-12-03 21:43:32.131007110)`
-- `811614021592742000 (1995-09-20 10:20:21.592742000)`
-- `861401392942000614 (1997-04-18 16:09:52.942000614)`
-- `801592842000921000 (1995-05-27 10:40:42.000921000)`
+- `861213100711011614 (1997-04-16 11:51:40.711011614)`
+- `802159217420006140 (1995-06-03 00:00:17.420006140)`
+- `813921942000614015 (1995-10-17 03:25:42.000614015)`
+- `892184200092110000 (1998-04-09 22:56:40.092110000)`
 
 The Fizz Buzz program highlights a few features that haven't been covered yet,
 namely terminating and "continue"-ing conditionals. We also have to tell the
@@ -424,9 +418,9 @@ continuing to the next part of the timestamp.
 
 # Set variables 9 and 8 to "fizz" and "buzz" respectively
 08 09 01 04 # Create variable 9 with type string (1) and length 4
-06 09 26 26 # Insert 4 chars ("fizz") into variable 9
+32 09 26 26 # Insert 4 chars ("Fizz") into variable 9
 08 08 01 04 # Create variable 8 with type string (1) and length 4
-02 21 26 26 # Insert 4 chars ("buzz") into variable 8
+28 21 26 26 # Insert 4 chars ("Buzz") into variable 8
 
 05 00 01 # Change interpreter back to 1-digit parsing mode
 
@@ -436,26 +430,22 @@ continuing to the next part of the timestamp.
 77111 # On variable 7, call function "+=" (5) using a variable (1) with a 1 digit ID
 8     # Use 1 digit variable ID (8) to append values from var 8 to var 7
 
-# Create variable 1 for iterating from 0 to 100
-8121 # Create variable 1 with type int (2) and size 1
-0    # Insert 1 digit (0) into variable 1
-
 # Begin the loop from 0 to 100
-61213100 # while variable 1 < 100
+61213100 # while variable 1 < 100 (implicit creation of var 1)
     711011 # var 1 += 1
     6140215 # if var 1 % 15 == 0
-        927 # print var 7 ("fizzbuzz")
-          4 # continue
+        9217 # print var 7 ("fizzbuzz")
+           4 # continue
     2000 # end-if
     614013 # if var 1 % 3 == 0
-       929 # print var 9 ("fizz")
-         4 # continue
-    2000 # end-if
-    614015 # if var 1 % 5 == 0
-        928 # print var 8 ("buzz")
+       9219 # print var 9 ("fizz")
           4 # continue
     2000 # end-if
-    921 # print var 1
+    614015 # if var 1 % 5 == 0
+        9218 # print var 8 ("buzz")
+           4 # continue
+    2000 # end-if
+    9211 # print var 1
 ```
 
 Output:
@@ -497,28 +487,34 @@ fizzbuzz
 [`examples/count-up-forever.y2k`](examples/count-up-forever.y2k)
 
 Timestamp(s):
-- `611110721011922000 (1989-05-13 18:58:41.011922000)`
+- `611110721011921200 (1989-05-13 18:58:41.011921200)`
 
 *Originally from [this problem on
-codegolf.stackexchange.com](https://codegolf.stackexchange.com/questions/63834/count-up-forever/)*
+codegolf.stackexchange.com](https://codegolf.stackexchange.com/questions/63834/count-up-forever/).*
 
-This program highlights a "hacky" feature that is included in Y2K, which is the ability
-to create new variables by referencing their IDs before they've been created. In this
-example, we create variable 1 through its reference in the while loop, and variable 2
-the first time that we try to modify it. When you do this, an "empty" variable is created
-without a specific type and a numeric value of 0.
+You may have noticed something "sneaky" in the Fizz Buzz example, which is the
+implicit creation of variables when they're referenced without being explicitly
+created beforehand. This is somewhat similar to the `for i in val` behavior
+seen in other languages, where `i` is created from the context it's used in.
+Currently, Y2K only supports initialization of integer variables with a value
+of `0`, but this could be expanded in future versions to support iterating over
+strings, arrays, and so on.
+
+This program -- a simple program to count up by 1 until killed -- highlights
+that feature. In this example, we create variable 1 through its reference in
+the while loop, and variable 2 the first time that we try to modify it.
 
 Creating variables this way isn't necessarily recommended, since it makes
-programs more difficult to read and can only be used for creating variables
-with a value of 0, but it can be a useful way to condense a solution into an
-even smaller footprint. In this case, we can fit the solution to the problem in
-a single file timestamp (and in raw format is only 15 bytes after comments and
-newlines are removed).
+programs more difficult to read and, as previously mentioned, can only be used
+for creating variables with a value of 0. But it can be a useful way to
+condense a solution into an even smaller footprint. In this case, we can fit
+the solution to the problem in a single file timestamp (and in raw format is
+only 15 bytes after comments and newlines are removed).
 
 ```
 611110 # while var 1 == 0
     721011 # var 2 += 1
-    922    # print var 2
+    9212   # print var 2
 ```
 
 Output:

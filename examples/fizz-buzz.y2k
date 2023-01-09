@@ -8,9 +8,9 @@
 
 # Set variables 9 and 8 to "fizz" and "buzz" respectively
 08 09 01 04 # Create variable 9 with type string (1) and length 4
-06 09 26 26 # Insert 4 chars ("fizz") into variable 9
+32 09 26 26 # Insert 4 chars ("Fizz") into variable 9
 08 08 01 04 # Create variable 8 with type string (1) and length 4
-02 21 26 26 # Insert 4 chars ("buzz") into variable 8
+28 21 26 26 # Insert 4 chars ("Buzz") into variable 8
 
 05 00 01 # Change interpreter back to 1-digit parsing mode
 
@@ -20,23 +20,19 @@
 77111 # On variable 7, call function "+=" (5) using a variable (1) with a 1 digit ID
 8     # Use 1 digit variable ID (8) to append values from var 8 to var 7
 
-# Create variable 1 for iterating from 0 to 100
-8121 # Create variable 1 with type int (2) and size 1
-0    # Insert 1 digit (0) into variable 1
-
 # Begin the loop from 0 to 100
-61213100 # while variable 1 < 100
+61213100 # while variable 1 < 100 (implicit creation of var 1)
     711011 # var 1 += 1
     6140215 # if var 1 % 15 == 0
-        927 # print var 7 ("fizzbuzz")
-          4 # continue
+        9217 # print var 7 ("fizzbuzz")
+           4 # continue
     2000 # end-if
     614013 # if var 1 % 3 == 0
-       929 # print var 9 ("fizz")
-         4 # continue
-    2000 # end-if
-    614015 # if var 1 % 5 == 0
-        928 # print var 8 ("buzz")
+       9219 # print var 9 ("fizz")
           4 # continue
     2000 # end-if
-    921 # print var 1
+    614015 # if var 1 % 5 == 0
+        9218 # print var 8 ("buzz")
+           4 # continue
+    2000 # end-if
+    9211 # print var 1

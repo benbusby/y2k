@@ -49,7 +49,7 @@ func (y2kComp Y2KCond) RunCond(
 	}
 
 	if result == utils.ContinueCmd {
-		// Break out of timestamp if commanded
+		// Break value of timestamp if commanded
 		return true
 	}
 
@@ -151,7 +151,7 @@ func (y2k Y2K) ParseCondition(timestamp string, val reflect.Value) string {
 
 		stop := y2kCond.RunCond(y2k, whileTimestamp, targetVar, splitComp)
 
-		// Conditions can optionally break out of the timestamp using the
+		// Conditions can optionally break value of the timestamp using the
 		// CONTINUE command (see interpreter.go). In this instance, the next
 		// timestamp passed back to the parser should be empty.
 		if stop {

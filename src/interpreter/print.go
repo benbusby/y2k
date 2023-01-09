@@ -1,11 +1,8 @@
 package interpreter
 
 import (
-	"fmt"
 	"github.com/benbusby/y2k/src/utils"
 	"reflect"
-	"strconv"
-	"strings"
 )
 
 // Y2KPrintType is an enum to indicate to the interpreter what should be printed.
@@ -17,41 +14,39 @@ const (
 )
 
 type Y2KPrint struct {
-	Type Y2KPrintType
-	out  string
+	Type  Y2KPrintType
+	Size  int
+	value string
 }
 
 func (y2k Y2K) ParsePrint(timestamp string, val reflect.Value) string {
 	y2kPrint := val.Interface().(Y2KPrint)
 
-	input := utils.StrToInt(timestamp[:y2k.Digits])
+	input := timestamp[:y2k.Digits]
 	y2k.DebugMsg("ParsePrint: [%s]%s",
-		timestamp[:y2k.Digits],
+		input,
 		timestamp[y2k.Digits:],
 	)
 
-	// If we're printing a variable, the next input will be the variable ID.
-	// We can use that to print the variable value and return the timestamp
-	// back to the caller.
-	if y2kPrint.Type == Y2KPrintVar {
-		y2k.DebugMsg("Print Var[%s]", strconv.Itoa(input))
-		variable := GetVar(uint8(input))
-		y2k.OutputMsg(variable.GetValue())
+	y2kPrint.value += input
 
-		return timestamp
-	} else if y2kPrint.Type != Y2KPrintString {
-		panic(fmt.Sprintf("Unknown print type: %d", y2kPrint.Type))
-	}
+	if len(y2kPrint.value) >= y2kPrint.Size*y2k.Digits {
+		// If we're printing a variable, the value will be an integer
+		// variable ID to print. Otherwise, we need to split the string
+		// into N-sized chunks (dependent on interpreter parsing window
+		// size) and print each character that matches each digit.
+		switch y2kPrint.Type {
+		case Y2KPrintString:
+			splitValues := utils.SplitStrByN(y2kPrint.value, y2k.Digits)
+			strValue := utils.StrArrToPrintable(splitValues)
+			y2k.OutputMsg(strValue)
+			break
+		case Y2KPrintVar:
+			printVar := GetVar(uint8(utils.StrToInt(y2kPrint.value)))
+			y2k.OutputMsg(printVar.GetValue())
+			break
+		}
 
-	// Otherwise we need to begin building a string until there have been two
-	// back-to-back spaces (two 0 inputs). This is just an arbitrary way of
-	// determining when parsing of a print string should end.
-	y2kPrint.out += string(utils.Printable[input])
-
-	// Check if the string terminator (whitespace * N-digits) has been added,
-	// and if so, strip out the terminator and print the string.
-	if strings.HasSuffix(y2kPrint.out, utils.StrTerm) {
-		y2k.OutputMsg(y2kPrint.out[0 : len(y2kPrint.out)-len(utils.StrTerm)])
 		return timestamp
 	}
 

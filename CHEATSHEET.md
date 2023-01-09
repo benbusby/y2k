@@ -70,6 +70,7 @@ would be assigned to those fields, for example.
           <li>1 --> String</li>
           <li>2 --> Variable</li>
         </ul>
+        <li>Size</li>
       </ol>
     </td>
   </tr>

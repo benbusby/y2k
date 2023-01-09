@@ -73,7 +73,7 @@ func MultiplyVar(y2kVar *Y2KVar, _ string, numVal float64) {
 // variable is numeric) or a string (if the variable is a string). For strings,
 // this results in a string with all instances of the specified string removed.
 // For all other variable types, this is regular division.
-// out Example: "hello world!" / "o" -> "hell wrld!"
+// value Example: "hello world!" / "o" -> "hell wrld!"
 func DivideVar(y2kVar *Y2KVar, strVal string, numVal float64) {
 	switch y2kVar.Type {
 	case Y2KString:

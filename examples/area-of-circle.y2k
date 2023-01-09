@@ -14,4 +14,4 @@
           # variable argument (1) with a variable ID size of 1
 9         # Use the variable ID 9 in the function argument (var1 *= var9)
 
-921       # Print variable 1
+9211      # Print variable 1

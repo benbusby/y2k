@@ -19,7 +19,7 @@
 0     # Insert 1 digit (0) into conditional's right hand value
 
 # Begin while loop
-    921 # Print var 9
+    9211 # Print var 9
     739111 # var 3 = var 1
     719112 # var 1 = var 2
     721113 # var 2 += var 3

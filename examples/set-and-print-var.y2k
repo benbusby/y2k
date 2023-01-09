@@ -1,8 +1,8 @@
 # set-and-print-var.y2k
-# This program sets variable 1 to the integer value 1500, and then prints
+# This program sets variable 1 to the integer value 1999, and then prints
 # the variable.
 
 8124 # Create new variable 1 with type int (2) and size 4
-1500 # Insert 4 digits (1500) into variable 1
+1999 # Insert 2 digits (99) into variable 1
 
-921 # Print variable 1
+9211 # Print variable 1
