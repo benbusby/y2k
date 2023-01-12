@@ -1,17 +1,22 @@
-[![Y2K Logo](https://benbusby.com/assets/images/y2k-logo.jpeg)](https://benbusby.com/assets/images/y2k-logo.jpeg)
+<div align="center">
 
-[![MPL License](https://img.shields.io/github/license/benbusby/y2k)](LICENSE)
-![GitHub release](https://img.shields.io/github/v/release/benbusby/y2k)
-[![builds.sr.ht status](https://builds.sr.ht/~benbusby/y2k.svg)](https://builds.sr.ht/~benbusby/y2k?)
-[![Go Report Card](https://goreportcard.com/badge/github.com/benbusby/y2k)](https://goreportcard.com/report/github.com/benbusby/y2k)
+  [![Y2K Logo](https://benbusby.com/assets/images/y2k.gif)](https://benbusby.com/assets/images/y2k.gif)
+  
+  [![MPL License](https://img.shields.io/github/license/benbusby/y2k)](LICENSE)
+  [![GitHub release](https://img.shields.io/github/v/release/benbusby/y2k)](https://github.com/benbusby/y2k/releases)
+  [![builds.sr.ht status](https://builds.sr.ht/~benbusby/y2k.svg)](https://builds.sr.ht/~benbusby/y2k?)
+  [![Go Report Card](https://goreportcard.com/badge/github.com/benbusby/y2k)](https://goreportcard.com/report/github.com/benbusby/y2k)
+</div>
 
 ___
 
 <table>
+  <thead>
     <tr>
-        <td><a href="https://sr.ht/~benbusby/y2k">SourceHut</a></td>
-        <td><a href="https://github.com/benbusby/y2k">GitHub</a></td>
+        <th width="500px"><a href="https://sr.ht/~benbusby/y2k">SourceHut</a></th>
+        <th width="500px"><a href="https://github.com/benbusby/y2k">GitHub</a></th>
     </tr>
+  </thead>
 </table>
 
 Contents
