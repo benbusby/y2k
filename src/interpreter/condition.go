@@ -58,46 +58,42 @@ func (y2kComp Y2KCond) RunCond(
 
 // EqualTo checks string or numeric equality
 func EqualTo(y2kVar *Y2KVar, values []string) bool {
-	switch y2kVar.Type {
-	case Y2KString:
+	if y2kVar.Type == Y2KString {
 		return y2kVar.strVal == utils.StrArrToPrintable(values)
-	default:
-		return y2kVar.numVal == utils.StrArrToFloat(values)
 	}
+
+	return y2kVar.numVal == utils.StrArrToFloat(values)
 }
 
 // LessThan checks if a string's length is less than the specified value,
 // or if a number is less than a different numeric value.
 func LessThan(y2kVar *Y2KVar, values []string) bool {
-	switch y2kVar.Type {
-	case Y2KString:
+	if y2kVar.Type == Y2KString {
 		return len(y2kVar.strVal) < utils.StrArrToInt(values)
-	default:
-		return y2kVar.numVal < utils.StrArrToFloat(values)
 	}
+
+	return y2kVar.numVal < utils.StrArrToFloat(values)
 }
 
 // GreaterThan checks if a string's length is greater than the specified value,
 // or if a number is greater than a different numeric value.
 func GreaterThan(y2kVar *Y2KVar, values []string) bool {
-	switch y2kVar.Type {
-	case Y2KString:
+	if y2kVar.Type == Y2KString {
 		return len(y2kVar.strVal) > utils.StrArrToInt(values)
-	default:
-		return y2kVar.numVal > utils.StrArrToFloat(values)
 	}
+
+	return y2kVar.numVal > utils.StrArrToFloat(values)
 }
 
 // IsDivisible checks if a numeric variable is evenly divisible by a
 // specific number. Currently, there isn't an equivalent for string
 // variables, so this will just return true in that case.
 func IsDivisible(y2kVar *Y2KVar, values []string) bool {
-	switch y2kVar.Type {
-	case Y2KString:
+	if y2kVar.Type == Y2KString {
 		return true
-	default:
-		return math.Mod(y2kVar.numVal, utils.StrArrToFloat(values)) == 0
 	}
+
+	return math.Mod(y2kVar.numVal, utils.StrArrToFloat(values)) == 0
 }
 
 // ParseCondition compares a variable against a raw value and parses a segment of

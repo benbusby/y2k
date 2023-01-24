@@ -29,28 +29,24 @@ var modMap = map[uint8]func(*Y2KVar, string, float64){
 // AddToVar directly modifies a variable by adding a second value to either its
 // numVal or strVal property (depending on variable data type).
 func AddToVar(y2kVar *Y2KVar, strVal string, numVal float64) {
-	switch y2kVar.Type {
-	case Y2KString:
+	if y2kVar.Type == Y2KString {
 		y2kVar.strVal += strVal
-		break
-	default:
-		y2kVar.numVal += numVal
-		break
+		return
 	}
+
+	y2kVar.numVal += numVal
 }
 
 // SubtractFromVar modifies a variable by subtracting from the variable's value.
 // For strings, this results in a substring from 0:length-N. For all other
 // variable types, this is regular subtraction.
 func SubtractFromVar(y2kVar *Y2KVar, _ string, numVal float64) {
-	switch y2kVar.Type {
-	case Y2KString:
+	if y2kVar.Type == Y2KString {
 		y2kVar.strVal = y2kVar.strVal[0 : len(y2kVar.strVal)-int(numVal)]
-		break
-	default:
-		y2kVar.numVal -= numVal
-		break
+		return
 	}
+
+	y2kVar.numVal -= numVal
 }
 
 // MultiplyVar directly modifies a variable by multiplying the value by a
@@ -59,14 +55,12 @@ func SubtractFromVar(y2kVar *Y2KVar, _ string, numVal float64) {
 // that in this case, val is always treated as a number, even for string
 // variables.
 func MultiplyVar(y2kVar *Y2KVar, _ string, numVal float64) {
-	switch y2kVar.Type {
-	case Y2KString:
+	if y2kVar.Type == Y2KString {
 		y2kVar.strVal = strings.Repeat(y2kVar.strVal, int(numVal))
-		break
-	default:
-		y2kVar.numVal *= numVal
-		break
+		return
 	}
+
+	y2kVar.numVal *= numVal
 }
 
 // DivideVar modifies a variable by dividing the value by a number (if the
@@ -75,43 +69,35 @@ func MultiplyVar(y2kVar *Y2KVar, _ string, numVal float64) {
 // For all other variable types, this is regular division.
 // value Example: "hello world!" / "o" -> "hell wrld!"
 func DivideVar(y2kVar *Y2KVar, strVal string, numVal float64) {
-	switch y2kVar.Type {
-	case Y2KString:
-		y2kVar.strVal = strings.ReplaceAll(
-			y2kVar.strVal,
-			strVal,
-			"")
-		break
-	default:
-		y2kVar.numVal /= numVal
-		break
+	if y2kVar.Type == Y2KString {
+		y2kVar.strVal = strings.ReplaceAll(y2kVar.strVal, strVal, "")
+		return
 	}
+
+	y2kVar.numVal /= numVal
 }
 
 // PowVar returns the result of exponentiation with a variable's numeric
 // value as a base, and numVal input as the exponent.
 // This only applies to numeric variables -- string variables are ignored.
 func PowVar(y2kVar *Y2KVar, _ string, numVal float64) {
-	switch y2kVar.Type {
-	case Y2KString:
+	if y2kVar.Type == Y2KString {
 		return
-	default:
-		y2kVar.numVal = math.Pow(y2kVar.numVal, numVal)
 	}
+
+	y2kVar.numVal = math.Pow(y2kVar.numVal, numVal)
 }
 
 // SetVar overwrites a variable's value with the given input. Note that you
 // cannot overwrite a string variable with a numeric value. You would want
 // to create a new variable (command 8) with the new data type in that case.
 func SetVar(y2kVar *Y2KVar, strVal string, numVal float64) {
-	switch y2kVar.Type {
-	case Y2KString:
+	if y2kVar.Type == Y2KString {
 		y2kVar.strVal = strVal
-		break
-	default:
-		y2kVar.numVal = numVal
-		break
+		return
 	}
+
+	y2kVar.numVal = numVal
 }
 
 // ParseModify recursively builds a set of values to modify an existing

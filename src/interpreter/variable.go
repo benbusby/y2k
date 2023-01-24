@@ -36,12 +36,11 @@ type Y2KVar struct {
 // numeric variable, it returns the numeric value, otherwise it returns the
 // string value.
 func (y2kVar *Y2KVar) GetValue() string {
-	switch y2kVar.Type {
-	case Y2KString:
+	if y2kVar.Type == Y2KString {
 		return y2kVar.strVal
-	default:
-		return utils.FloatToString(y2kVar.numVal)
 	}
+
+	return utils.FloatToString(y2kVar.numVal)
 }
 
 // GetValues returns both strVal and numVal of a variable.
