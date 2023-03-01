@@ -191,7 +191,7 @@ desired.
 Timestamp:
 - `812419999211000000 (1995-09-29 18:13:19.211000000)`
 
-This example simply sets an integer variable to the value `1500` and then
+This example simply sets an integer variable to the value `1999` and then
 prints that variable to the console.
 
 ```elixir
