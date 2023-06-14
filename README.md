@@ -214,8 +214,8 @@ value after creating it. In this case, we're taking the original variable
 value (`1999`) and subtracting `4` from it to get `1995`.
 
 ```elixir
-8124  # Create new variable 1 with type int (2) and size 3
-1999  # Insert 3 digits (100) into variable 1
+8124  # Create (8) a variable (1) with type "int" (2) and size 4
+1999  # Insert 4 digits (1999) into variable 1
 
 71201 # On variable 1, call function "-=" (2) with a primitive (0) 1-digit argument
 4     # Insert 1 digit (4) into function argument
