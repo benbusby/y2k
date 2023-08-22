@@ -185,6 +185,8 @@ but with added explanation for how/why they work.
 All examples can be exported to 0-byte solutions using the `-export` flag if
 desired.
 
+<hr>
+
 ### Set and Print Variable
 [`examples/set-and-print-var.y2k`](examples/set-and-print-var.y2k)
 
@@ -202,6 +204,8 @@ prints that variable to the console.
 ```
 
 Output: `1999`
+
+<hr>
 
 ### Modify and Print Variable
 [`examples/modify-and-print-var.y2k`](examples/modify-and-print-var.y2k)
@@ -225,6 +229,8 @@ value (`1999`) and subtracting `4` from it to get `1995`.
 
 Output: `1995`
 
+<hr>
+
 ### Hello World
 [`examples/hello-world.y2k`](examples/hello-world.y2k)
 
@@ -247,6 +253,8 @@ parsing mode at the very beginning.
 ```
 
 Output: `Hello World!`
+
+<hr>
 
 ### Area of a Circle
 [`examples/area-of-circle.y2k`](examples/area-of-circle.y2k)
@@ -303,6 +311,8 @@ Output (`y2k examples/area-of-circle.y2k 25`):
 ```
 1963.495375
 ```
+
+<hr>
 
 ### Fibonacci Sequence
 [`examples/fibonacci-n-terms.y2k`](examples/fibonacci-n-terms.y2k)
@@ -389,6 +399,8 @@ Output 2 (`y2k examples/fibonacci-n-terms.y2k 20`):
 2584
 4181
 ```
+
+<hr>
 
 ### Fizz Buzz
 [`examples/fizz-buzz.y2k`](examples/fizz-buzz.y2k)
@@ -488,6 +500,8 @@ fizzbuzz
 ...<continued>...
 ```
 
+<hr>
+
 ### Count Up Forever
 [`examples/count-up-forever.y2k`](examples/count-up-forever.y2k)
 
@@ -531,6 +545,8 @@ Output:
 5
 ...<continued until killed>...
 ```
+
+<hr>
 
 ## FAQ
 
