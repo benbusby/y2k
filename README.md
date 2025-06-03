@@ -1,7 +1,6 @@
 <div align="center">
+  [![Y2K Logo](https://raw.githubusercontent.com/benbusby/y2k/refs/heads/main/misc/y2k-logo.jpeg)](misc/y2k-logo.jpeg)
 
-  [![Y2K Logo](https://benbusby.com/assets/images/y2k.gif)](https://benbusby.com/assets/images/y2k.gif)
-  
   [![MPL License](https://img.shields.io/github/license/benbusby/y2k)](LICENSE)
   [![GitHub release](https://img.shields.io/github/v/release/benbusby/y2k)](https://github.com/benbusby/y2k/releases)
   [![builds.sr.ht status](https://builds.sr.ht/~benbusby/y2k.svg)](https://builds.sr.ht/~benbusby/y2k?)
