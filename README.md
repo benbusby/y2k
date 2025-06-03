@@ -1,5 +1,5 @@
 <div align="center">
-  [![Y2K Logo](https://raw.githubusercontent.com/benbusby/y2k/refs/heads/main/misc/y2k-logo.jpeg)](misc/y2k-logo.jpeg)
+  <img src="https://raw.githubusercontent.com/benbusby/y2k/refs/heads/main/misc/y2k-logo.jpeg" alt="Y2K Logo">
 
   [![MPL License](https://img.shields.io/github/license/benbusby/y2k)](LICENSE)
   [![GitHub release](https://img.shields.io/github/v/release/benbusby/y2k)](https://github.com/benbusby/y2k/releases)
